@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Face Attendance - Mr. HEM</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:'Segoe UI', Arial, sans-serif; background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);
+    min-height:100vh; color:#fff; padding:16px;
+  }
+  #app { max-width:460px; margin:0 auto; }
+  h1 { font-size:19px; text-align:center; margin-bottom:14px; color:#a9ffcb; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:14px; }
+  .tab-btn {
+    flex:1; padding:10px; border:none; border-radius:10px; background:#132b1e; color:#8fd6a8; font-size:13px; font-weight:600;
+  }
+  .tab-btn.active { background:#1db954; color:#fff; }
+
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .card { background:#132b1e; border-radius:16px; padding:16px; margin-bottom:14px; }
+
+  #video-wrap { position:relative; width:100%; border-radius:12px; overflow:hidden; background:#000; margin-bottom:10px; }
+  video { width:100%; display:block; transform:scaleX(-1); }
+  canvas { position:absolute; top:0; left:0; transform:scaleX(-1); }
+
+  input[type="text"] {
+    width:100%; padding:12px; border-radius:10px; border:none; background:#0e1a12; color:#fff; font-size:14px; margin-bottom:10px;
+  }
+  .btn {
+    width:100%; padding:13px; border:none; border-radius:22px; background:#1db954; color:#fff; font-weight:600; font-size:15px; margin-bottom:10px;
+  }
+  .btn:active { background:#159e46; }
+  .btn:disabled { background:#2b4636; color:#8fd6a8; }
+  .btn.secondary { background:#2b4636; color:#dff5e6; }
+  .btn.danger { background:#5c1f1f; color:#ffb3b3; }
+
+  #status { text-align:center; font-size:13px; color:#8fd6a8; min-height:18px; margin-bottom:8px; }
+
+  .list-item {
+    display:flex; justify-content:space-between; align-items:center; background:#0e1a12;
+    padding:10px 12px; border-radius:10px; margin-bottom:8px; font-size:14px;
+  }
+  .list-item .del-btn { background:none; border:none; color:#ff6b6b; font-size:16px; }
+  .list-item .meta { font-size:11px; color:#6b8c76; }
+
+  #export-btn { background:#2b4636; color:#a9ffcb; }
+  #footer { text-align:center; font-size:11px; color:#6b8c76; margin-top:10px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>🎓 Face Attendance Tracker</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="register">Register</button>
+    <button class="tab-btn" data-tab="attendance">Attendance</button>
+    <button class="tab-btn" data-tab="log">Log</button>
+  </div>
+
+  <div id="status">Models load ho rahe hain, thoda ruko...</div>
+
+  <!-- REGISTER PANEL -->
+  <div class="panel active" id="panel-register">
+    <div class="card">
+      <div id="video-wrap-register" style="position:relative;">
+        <video id="video-reg" autoplay muted playsinline></video>
+        <canvas id="overlay-reg"></canvas>
+      </div>
+      <input type="text" id="name-input" placeholder="Student ka naam likho">
+      <button class="btn" id="capture-btn" disabled>📸 Face Capture Karo & Save</button>
+    </div>
+    <div class="card">
+      <div style="font-size:13px; color:#8fd6a8; margin-bottom:8px;">Registered Students</div>
+      <div id="registered-list"></div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE PANEL -->
+  <div class="panel" id="panel-attendance">
+    <div class="card">
+      <div id="video-wrap-attend" style="position:relative;">
+        <video id="video-att" autoplay muted playsinline></video>
+        <canvas id="overlay-att"></canvas>
+      </div>
+      <button class="btn" id="start-attend-btn" disabled>▶ Camera On Karo & Attendance Shuru Karo</button>
+      <button class="btn secondary" id="stop-attend-btn" style="display:none;">⏹ Rokho</button>
+    </div>
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="panel" id="panel-log">
+    <div class="card">
+      <div style="font-size:13px; color:#8fd6a8; margin-bottom:8px;">Aaj ka Attendance (<span id="today-date"></span>)</div>
+      <div id="attendance-log"></div>
+      <button class="btn" id="export-btn">⬇ CSV Export Karo</button>
+      <button class="btn danger" id="clear-log-btn">Sara Log Clear Karo</button>
+    </div>
+  </div>
+
+  <div id="footer">Mr. HEM / Developed by Mr. HEM — Sab data sirf isi device me local save hota hai</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script>
+  const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+  const statusEl = document.getElementById('status');
+  let modelsReady = false;
+
+  // ---------- TAB SWITCHING ----------
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'log') renderLog();
+      if (btn.dataset.tab !== 'attendance') stopAttendanceLoop();
+    });
+  });
+
+  // ---------- DATA STORE ----------
+  function getStudents() { return JSON.parse(localStorage.getItem('fa_students') || '[]'); }
+  function saveStudents(list) { localStorage.setItem('fa_students', JSON.stringify(list)); }
+  function getLog() { return JSON.parse(localStorage.getItem('fa_log') || '[]'); }
+  function saveLog(list) { localStorage.setItem('fa_log', JSON.stringify(list)); }
+
+  function todayStr() {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  }
+  document.getElementById('today-date').textContent = todayStr();
+
+  // ---------- LOAD MODELS ----------
+  async function loadModels() {
+    try {
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+      modelsReady = true;
+      statusEl.textContent = 'Ready! Camera on karke shuru karo.';
+      document.getElementById('capture-btn').disabled = false;
+      document.getElementById('start-attend-btn').disabled = false;
+      renderRegisteredList();
+    } catch (e) {
+      statusEl.textContent = 'Model load nahi ho paya — internet check karo.';
+    }
+  }
+  loadModels();
+
+  // ---------- CAMERA (REGISTER) ----------
+  const videoReg = document.getElementById('video-reg');
+  const overlayReg = document.getElementById('overlay-reg');
+
+  async function startCamera(videoEl) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+      videoEl.srcObject = stream;
+      return true;
+    } catch (e) {
+      statusEl.textContent = 'Camera access nahi mila — permission allow karo.';
+      return false;
+    }
+  }
+  startCamera(videoReg);
+
+  document.getElementById('capture-btn').addEventListener('click', async () => {
+    if (!modelsReady) return;
+    const name = document.getElementById('name-input').value.trim();
+    if (!name) { statusEl.textContent = 'Pehle naam likho.'; return; }
+
+    statusEl.textContent = 'Face detect ho raha hai...';
+    const detection = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks().withFaceDescriptor();
+
+    if (!detection) {
+      statusEl.textContent = 'Face detect nahi hua, seedhe camera ke saamne aao aur dobara try karo.';
+      return;
+    }
+
+    const students = getStudents();
+    students.push({ name, descriptor: Array.from(detection.descriptor), addedAt: Date.now() });
+    saveStudents(students);
+    document.getElementById('name-input').value = '';
+    statusEl.textContent = `${name} register ho gaya!`;
+    renderRegisteredList();
+  });
+
+  function renderRegisteredList() {
+    const list = document.getElementById('registered-list');
+    const students = getStudents();
+    if (students.length === 0) {
+      list.innerHTML = '<div style="font-size:12px;color:#6b8c76;">Abhi koi student register nahi hai.</div>';
+      return;
+    }
+    list.innerHTML = students.map((s, i) => `
+      <div class="list-item">
+        <span>${s.name}</span>
+        <button class="del-btn" data-idx="${i}">✕</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.idx);
+        const students = getStudents();
+        students.splice(idx, 1);
+        saveStudents(students);
+        renderRegisteredList();
+      });
+    });
+  }
+
+  // ---------- CAMERA (ATTENDANCE) ----------
+  const videoAtt = document.getElementById('video-att');
+  const overlayAtt = document.getElementById('overlay-att');
+  let attendLoopId = null;
+  let attendCameraStarted = false;
+
+  document.getElementById('start-attend-btn').addEventListener('click', async () => {
+    const students = getStudents();
+    if (students.length === 0) {
+      statusEl.textContent = 'Pehle kam se kam ek student register karo.';
+      return;
+    }
+    if (!attendCameraStarted) {
+      const ok = await startCamera(videoAtt);
+      if (!ok) return;
+      attendCameraStarted = true;
+    }
+    document.getElementById('start-attend-btn').style.display = 'none';
+    document.getElementById('stop-attend-btn').style.display = 'block';
+    startAttendanceLoop();
+  });
+
+  document.getElementById('stop-attend-btn').addEventListener('click', () => {
+    document.getElementById('start-attend-btn').style.display = 'block';
+    document.getElementById('stop-attend-btn').style.display = 'none';
+    stopAttendanceLoop();
+  });
+
+  function startAttendanceLoop() {
+    const labeledDescriptors = getStudents().map(s =>
+      new faceapi.LabeledFaceDescriptors(s.name, [new Float32Array(s.descriptor)])
+    );
+    const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
+
+    attendLoopId = setInterval(async () => {
+      if (!modelsReady || videoAtt.readyState !== 4) return;
+
+      const dims = { width: videoAtt.videoWidth, height: videoAtt.videoHeight };
+      overlayAtt.width = dims.width; overlayAtt.height = dims.height;
+
+      const detections = await faceapi.detectAllFaces(videoAtt, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks().withFaceDescriptors();
+
+      const ctx = overlayAtt.getContext('2d');
+      ctx.clearRect(0, 0, overlayAtt.width, overlayAtt.height);
+
+      detections.forEach(det => {
+        const match = matcher.findBestMatch(det.descriptor);
+        const box = det.detection.box;
+        const label = match.label === 'unknown' ? 'Unknown' : match.label;
+        ctx.strokeStyle = match.label === 'unknown' ? '#ff6b6b' : '#1db954';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(box.x, box.y, box.width, box.height);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.font = '16px Arial';
+        ctx.fillText(label, box.x, box.y - 6);
+
+        if (match.label !== 'unknown') {
+          markAttendance(match.label);
+        }
+      });
+    }, 700);
+  }
+
+  function stopAttendanceLoop() {
+    if (attendLoopId) { clearInterval(attendLoopId); attendLoopId = null; }
+  }
+
+  function markAttendance(name) {
+    const log = getLog();
+    const today = todayStr();
+    const already = log.find(e => e.name === name && e.date === today);
+    if (already) return;
+
+    const now = new Date();
+    log.push({ name, date: today, time: now.toLocaleTimeString() });
+    saveLog(log);
+    statusEl.textContent = `✅ ${name} ki attendance lag gayi!`;
+  }
+
+  // ---------- LOG PANEL ----------
+  function renderLog() {
+    document.getElementById('today-date').textContent = todayStr();
+    const log = getLog().filter(e => e.date === todayStr());
+    const el = document.getElementById('attendance-log');
+    if (log.length === 0) {
+      el.innerHTML = '<div style="font-size:12px;color:#6b8c76;">Aaj abhi tak koi attendance nahi lagi.</div>';
+      return;
+    }
+    el.innerHTML = log.map(e => `
+      <div class="list-item">
+        <span>${e.name}</span>
+        <span class="meta">${e.time}</span>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    const log = getLog();
+    if (log.length === 0) { statusEl.textContent = 'Log khali hai.'; return; }
+    let csv = 'Name,Date,Time\n';
+    log.forEach(e => { csv += `${e.name},${e.date},${e.time}\n`; });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'attendance-log.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('clear-log-btn').addEventListener('click', () => {
+    if (confirm('Pura attendance log clear karna hai?')) {
+      saveLog([]);
+      renderLog();
+    }
+  });
+</script>
+</body>
+</html>
