@@ -3,34 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Face Attendance - Mr. HEM</title>
+<title>Face Attendance System - Mr. HEM</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
     font-family:'Segoe UI', Arial, sans-serif; background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);
-    min-height:100vh; color:#fff; padding:16px;
+    min-height:100vh; color:#fff; padding:14px;
   }
-  #app { max-width:460px; margin:0 auto; }
-  h1 { font-size:19px; text-align:center; margin-bottom:14px; color:#a9ffcb; }
+  #app { max-width:480px; margin:0 auto; }
+  h1 { font-size:18px; text-align:center; margin-bottom:12px; color:#a9ffcb; }
 
-  .tabs { display:flex; gap:8px; margin-bottom:14px; }
+  .tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
   .tab-btn {
-    flex:1; padding:10px; border:none; border-radius:10px; background:#132b1e; color:#8fd6a8; font-size:13px; font-weight:600;
+    flex:1; min-width:70px; padding:9px 4px; border:none; border-radius:10px; background:#132b1e; color:#8fd6a8; font-size:12px; font-weight:600;
   }
   .tab-btn.active { background:#1db954; color:#fff; }
 
   .panel { display:none; }
   .panel.active { display:block; }
 
+  .subtoggle { display:flex; gap:8px; margin-bottom:12px; }
+  .sub-btn {
+    flex:1; padding:9px; border:none; border-radius:20px; background:#0e1a12; color:#8fd6a8; font-size:13px; font-weight:600; border:1px solid #1f4a30;
+  }
+  .sub-btn.active { background:#1f4a30; color:#fff; }
+
   .card { background:#132b1e; border-radius:16px; padding:16px; margin-bottom:14px; }
 
-  #video-wrap { position:relative; width:100%; border-radius:12px; overflow:hidden; background:#000; margin-bottom:10px; }
+  #video-wrap-register, #video-wrap-attend { position:relative; width:100%; border-radius:12px; overflow:hidden; background:#000; margin-bottom:10px; }
   video { width:100%; display:block; transform:scaleX(-1); }
-  canvas { position:absolute; top:0; left:0; transform:scaleX(-1); }
+  canvas.overlay { position:absolute; top:0; left:0; transform:scaleX(-1); }
 
-  input[type="text"] {
-    width:100%; padding:12px; border-radius:10px; border:none; background:#0e1a12; color:#fff; font-size:14px; margin-bottom:10px;
+  input[type="text"], input[type="tel"], input[type="date"], select {
+    width:100%; padding:11px; border-radius:10px; border:none; background:#0e1a12; color:#fff; font-size:14px; margin-bottom:10px;
   }
+  label.field-label { font-size:12px; color:#8fd6a8; margin-bottom:4px; display:block; }
+
   .btn {
     width:100%; padding:13px; border:none; border-radius:22px; background:#1db954; color:#fff; font-weight:600; font-size:15px; margin-bottom:10px;
   }
@@ -38,71 +46,178 @@
   .btn:disabled { background:#2b4636; color:#8fd6a8; }
   .btn.secondary { background:#2b4636; color:#dff5e6; }
   .btn.danger { background:#5c1f1f; color:#ffb3b3; }
+  .btn.small { padding:8px; font-size:12px; border-radius:14px; width:auto; }
 
   #status { text-align:center; font-size:13px; color:#8fd6a8; min-height:18px; margin-bottom:8px; }
+
+  .profile-card { background:#0e1a12; border-radius:12px; padding:12px; margin-bottom:10px; }
+  .profile-top { display:flex; justify-content:space-between; align-items:center; }
+  .profile-name { font-size:15px; font-weight:700; color:#a9ffcb; }
+  .profile-meta { font-size:11px; color:#6b8c76; margin-top:2px; }
+  .profile-detail-grid { display:none; margin-top:10px; font-size:12.5px; line-height:1.8; color:#dff5e6; border-top:1px solid #1f4a30; padding-top:8px; }
+  .profile-detail-grid span { color:#8fd6a8; }
+  .profile-card.expanded .profile-detail-grid { display:block; }
+  .profile-actions { display:flex; gap:8px; margin-top:8px; }
+  .attendance-pct { font-size:12px; margin-top:4px; }
+  .pct-bar { height:6px; border-radius:3px; background:#1f4a30; margin-top:4px; overflow:hidden; }
+  .pct-fill { height:100%; background:#1db954; }
 
   .list-item {
     display:flex; justify-content:space-between; align-items:center; background:#0e1a12;
     padding:10px 12px; border-radius:10px; margin-bottom:8px; font-size:14px;
   }
-  .list-item .del-btn { background:none; border:none; color:#ff6b6b; font-size:16px; }
   .list-item .meta { font-size:11px; color:#6b8c76; }
 
-  #export-btn { background:#2b4636; color:#a9ffcb; }
+  #modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:50; align-items:flex-end; justify-content:center;
+  }
+  #modal-box {
+    background:#132b1e; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:18px; max-height:85vh; overflow-y:auto;
+  }
+  #modal-title { font-size:16px; color:#a9ffcb; margin-bottom:12px; }
+
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:6px; }
+  .stat-box { background:#0e1a12; border-radius:10px; padding:10px 4px; text-align:center; }
+  .stat-num { font-size:18px; font-weight:700; color:#a9ffcb; }
+  .stat-label { font-size:10px; color:#8fd6a8; margin-top:2px; }
+
   #footer { text-align:center; font-size:11px; color:#6b8c76; margin-top:10px; }
 </style>
 </head>
 <body>
 <div id="app">
-  <h1>🎓 Face Attendance Tracker</h1>
+  <h1>🎓 Face Attendance System</h1>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="register">Register</button>
     <button class="tab-btn" data-tab="attendance">Attendance</button>
+    <button class="tab-btn" data-tab="students">Students</button>
+    <button class="tab-btn" data-tab="teachers">Teachers</button>
     <button class="tab-btn" data-tab="log">Log</button>
   </div>
 
   <div id="status">Models load ho rahe hain, thoda ruko...</div>
 
-  <!-- REGISTER PANEL -->
+  <!-- ================= REGISTER PANEL ================= -->
   <div class="panel active" id="panel-register">
-    <div class="card">
-      <div id="video-wrap-register" style="position:relative;">
-        <video id="video-reg" autoplay muted playsinline></video>
-        <canvas id="overlay-reg"></canvas>
-      </div>
-      <input type="text" id="name-input" placeholder="Student ka naam likho">
-      <button class="btn" id="capture-btn" disabled>📸 Face Capture Karo & Save</button>
+    <div class="subtoggle">
+      <button class="sub-btn active" data-role="student" id="reg-role-student">Student</button>
+      <button class="sub-btn" data-role="teacher" id="reg-role-teacher">Teacher</button>
     </div>
+
     <div class="card">
-      <div style="font-size:13px; color:#8fd6a8; margin-bottom:8px;">Registered Students</div>
-      <div id="registered-list"></div>
+      <div id="video-wrap-register">
+        <video id="video-reg" autoplay muted playsinline></video>
+        <canvas class="overlay" id="overlay-reg"></canvas>
+      </div>
+
+      <!-- STUDENT FIELDS -->
+      <div id="student-fields">
+        <label class="field-label">Naam</label>
+        <input type="text" id="s-name" placeholder="Student ka pura naam">
+
+        <label class="field-label">B.Tech Branch</label>
+        <select id="s-branch">
+          <option value="">Branch select karo</option>
+          <option>CSE</option><option>ECE</option><option>ME</option><option>CE</option>
+          <option>EE</option><option>IT</option><option>CSE-AI/ML</option><option>Other</option>
+        </select>
+
+        <label class="field-label">Pita ka naam</label>
+        <input type="text" id="s-father" placeholder="Father's Name">
+
+        <label class="field-label">Mata ka naam</label>
+        <input type="text" id="s-mother" placeholder="Mother's Name">
+
+        <label class="field-label">Date of Birth</label>
+        <input type="date" id="s-dob">
+
+        <label class="field-label">Mobile Number</label>
+        <input type="tel" id="s-mobile" placeholder="10 digit mobile number" maxlength="10">
+      </div>
+
+      <!-- TEACHER FIELDS -->
+      <div id="teacher-fields" style="display:none;">
+        <label class="field-label">Naam</label>
+        <input type="text" id="t-name" placeholder="Teacher ka pura naam">
+
+        <label class="field-label">Department / Subject</label>
+        <input type="text" id="t-dept" placeholder="e.g. Computer Science">
+
+        <label class="field-label">Mobile Number</label>
+        <input type="tel" id="t-mobile" placeholder="10 digit mobile number" maxlength="10">
+      </div>
+
+      <button class="btn" id="capture-btn" disabled>📸 Face Capture Karo & Save</button>
     </div>
   </div>
 
-  <!-- ATTENDANCE PANEL -->
+  <!-- ================= ATTENDANCE PANEL ================= -->
   <div class="panel" id="panel-attendance">
+    <div class="subtoggle">
+      <button class="sub-btn active" data-mode="student" id="att-mode-student">Student Attendance</button>
+      <button class="sub-btn" data-mode="teacher" id="att-mode-teacher">Teacher Attendance</button>
+    </div>
     <div class="card">
-      <div id="video-wrap-attend" style="position:relative;">
+      <div id="video-wrap-attend">
         <video id="video-att" autoplay muted playsinline></video>
-        <canvas id="overlay-att"></canvas>
+        <canvas class="overlay" id="overlay-att"></canvas>
       </div>
       <button class="btn" id="start-attend-btn" disabled>▶ Camera On Karo & Attendance Shuru Karo</button>
       <button class="btn secondary" id="stop-attend-btn" style="display:none;">⏹ Rokho</button>
     </div>
   </div>
 
-  <!-- LOG PANEL -->
+  <!-- ================= STUDENTS PANEL ================= -->
+  <div class="panel" id="panel-students">
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num" id="total-students-num">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-box"><div class="stat-num" id="present-today-students">0</div><div class="stat-label">Present Aaj</div></div>
+        <div class="stat-box"><div class="stat-num" id="absent-today-students">0</div><div class="stat-label">Absent Aaj</div></div>
+      </div>
+    </div>
+    <div id="students-list"></div>
+  </div>
+
+  <!-- ================= TEACHERS PANEL ================= -->
+  <div class="panel" id="panel-teachers">
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num" id="total-teachers-num">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-box"><div class="stat-num" id="present-today-teachers">0</div><div class="stat-label">Present Aaj</div></div>
+        <div class="stat-box"><div class="stat-num" id="absent-today-teachers">0</div><div class="stat-label">Absent Aaj</div></div>
+      </div>
+    </div>
+    <div id="teachers-list"></div>
+  </div>
+
+  <!-- ================= LOG PANEL ================= -->
   <div class="panel" id="panel-log">
     <div class="card">
-      <div style="font-size:13px; color:#8fd6a8; margin-bottom:8px;">Aaj ka Attendance (<span id="today-date"></span>)</div>
-      <div id="attendance-log"></div>
-      <button class="btn" id="export-btn">⬇ CSV Export Karo</button>
-      <button class="btn danger" id="clear-log-btn">Sara Log Clear Karo</button>
+      <label class="field-label">Date select karo</label>
+      <input type="date" id="log-date">
+      <div class="subtoggle">
+        <button class="sub-btn active" data-logtype="students" id="log-type-students">Students</button>
+        <button class="sub-btn" data-logtype="teachers" id="log-type-teachers">Teachers</button>
+      </div>
+      <div id="log-list"></div>
+      <button class="btn secondary" id="export-btn">⬇ CSV Export Karo</button>
+      <button class="btn danger" id="clear-log-btn">Is Din Ka Log Clear Karo</button>
     </div>
   </div>
 
   <div id="footer">Mr. HEM / Developed by Mr. HEM — Sab data sirf isi device me local save hota hai</div>
+</div>
+
+<!-- ===== EDIT MODAL ===== -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div id="modal-title">Edit Profile</div>
+    <div id="modal-body"></div>
+    <button class="btn" id="modal-save-btn">Save Changes</button>
+    <button class="btn secondary" id="modal-cancel-btn">Cancel</button>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
@@ -110,6 +225,9 @@
   const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
   const statusEl = document.getElementById('status');
   let modelsReady = false;
+  let currentRegRole = 'student';
+  let currentAttMode = 'student';
+  let currentLogType = 'students';
 
   // ---------- TAB SWITCHING ----------
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -118,22 +236,57 @@
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'students') renderStudentsList();
+      if (btn.dataset.tab === 'teachers') renderTeachersList();
       if (btn.dataset.tab === 'log') renderLog();
       if (btn.dataset.tab !== 'attendance') stopAttendanceLoop();
     });
   });
 
+  // ---------- REGISTER ROLE TOGGLE ----------
+  document.getElementById('reg-role-student').addEventListener('click', () => setRegRole('student'));
+  document.getElementById('reg-role-teacher').addEventListener('click', () => setRegRole('teacher'));
+  function setRegRole(role) {
+    currentRegRole = role;
+    document.getElementById('reg-role-student').classList.toggle('active', role === 'student');
+    document.getElementById('reg-role-teacher').classList.toggle('active', role === 'teacher');
+    document.getElementById('student-fields').style.display = role === 'student' ? 'block' : 'none';
+    document.getElementById('teacher-fields').style.display = role === 'teacher' ? 'block' : 'none';
+  }
+
+  // ---------- ATTENDANCE MODE TOGGLE ----------
+  document.getElementById('att-mode-student').addEventListener('click', () => setAttMode('student'));
+  document.getElementById('att-mode-teacher').addEventListener('click', () => setAttMode('teacher'));
+  function setAttMode(mode) {
+    stopAttendanceLoop();
+    currentAttMode = mode;
+    document.getElementById('att-mode-student').classList.toggle('active', mode === 'student');
+    document.getElementById('att-mode-teacher').classList.toggle('active', mode === 'teacher');
+    document.getElementById('start-attend-btn').style.display = 'block';
+    document.getElementById('stop-attend-btn').style.display = 'none';
+  }
+
+  // ---------- LOG TYPE TOGGLE ----------
+  document.getElementById('log-type-students').addEventListener('click', () => { currentLogType = 'students'; toggleLogType(); });
+  document.getElementById('log-type-teachers').addEventListener('click', () => { currentLogType = 'teachers'; toggleLogType(); });
+  function toggleLogType() {
+    document.getElementById('log-type-students').classList.toggle('active', currentLogType === 'students');
+    document.getElementById('log-type-teachers').classList.toggle('active', currentLogType === 'teachers');
+    renderLog();
+  }
+
   // ---------- DATA STORE ----------
   function getStudents() { return JSON.parse(localStorage.getItem('fa_students') || '[]'); }
   function saveStudents(list) { localStorage.setItem('fa_students', JSON.stringify(list)); }
-  function getLog() { return JSON.parse(localStorage.getItem('fa_log') || '[]'); }
-  function saveLog(list) { localStorage.setItem('fa_log', JSON.stringify(list)); }
+  function getTeachers() { return JSON.parse(localStorage.getItem('fa_teachers') || '[]'); }
+  function saveTeachers(list) { localStorage.setItem('fa_teachers', JSON.stringify(list)); }
+  function getLog(type) { return JSON.parse(localStorage.getItem('fa_log_' + type) || '[]'); }
+  function saveLog(type, list) { localStorage.setItem('fa_log_' + type, JSON.stringify(list)); }
 
-  function todayStr() {
-    const d = new Date();
-    return d.toISOString().split('T')[0];
-  }
-  document.getElementById('today-date').textContent = todayStr();
+  function todayStr() { return new Date().toISOString().split('T')[0]; }
+  document.getElementById('log-date').value = todayStr();
+
+  function uid() { return 'id_' + Date.now() + '_' + Math.floor(Math.random() * 10000); }
 
   // ---------- LOAD MODELS ----------
   async function loadModels() {
@@ -145,7 +298,6 @@
       statusEl.textContent = 'Ready! Camera on karke shuru karo.';
       document.getElementById('capture-btn').disabled = false;
       document.getElementById('start-attend-btn').disabled = false;
-      renderRegisteredList();
     } catch (e) {
       statusEl.textContent = 'Model load nahi ho paya — internet check karo.';
     }
@@ -154,8 +306,6 @@
 
   // ---------- CAMERA (REGISTER) ----------
   const videoReg = document.getElementById('video-reg');
-  const overlayReg = document.getElementById('overlay-reg');
-
   async function startCamera(videoEl) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
@@ -170,8 +320,24 @@
 
   document.getElementById('capture-btn').addEventListener('click', async () => {
     if (!modelsReady) return;
-    const name = document.getElementById('name-input').value.trim();
-    if (!name) { statusEl.textContent = 'Pehle naam likho.'; return; }
+
+    let profile = null;
+    if (currentRegRole === 'student') {
+      const name = document.getElementById('s-name').value.trim();
+      const branch = document.getElementById('s-branch').value;
+      const father = document.getElementById('s-father').value.trim();
+      const mother = document.getElementById('s-mother').value.trim();
+      const dob = document.getElementById('s-dob').value;
+      const mobile = document.getElementById('s-mobile').value.trim();
+      if (!name || !branch || !mobile) { statusEl.textContent = 'Naam, Branch aur Mobile Number zaroori hai.'; return; }
+      profile = { id: uid(), name, branch, father, mother, dob, mobile, addedAt: Date.now() };
+    } else {
+      const name = document.getElementById('t-name').value.trim();
+      const dept = document.getElementById('t-dept').value.trim();
+      const mobile = document.getElementById('t-mobile').value.trim();
+      if (!name || !dept || !mobile) { statusEl.textContent = 'Naam, Department aur Mobile Number zaroori hai.'; return; }
+      profile = { id: uid(), name, dept, mobile, addedAt: Date.now() };
+    }
 
     statusEl.textContent = 'Face detect ho raha hai...';
     const detection = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions())
@@ -181,49 +347,28 @@
       statusEl.textContent = 'Face detect nahi hua, seedhe camera ke saamne aao aur dobara try karo.';
       return;
     }
+    profile.descriptor = Array.from(detection.descriptor);
 
-    const students = getStudents();
-    students.push({ name, descriptor: Array.from(detection.descriptor), addedAt: Date.now() });
-    saveStudents(students);
-    document.getElementById('name-input').value = '';
-    statusEl.textContent = `${name} register ho gaya!`;
-    renderRegisteredList();
+    if (currentRegRole === 'student') {
+      const list = getStudents(); list.push(profile); saveStudents(list);
+      ['s-name','s-branch','s-father','s-mother','s-dob','s-mobile'].forEach(id => document.getElementById(id).value = '');
+    } else {
+      const list = getTeachers(); list.push(profile); saveTeachers(list);
+      ['t-name','t-dept','t-mobile'].forEach(id => document.getElementById(id).value = '');
+    }
+    statusEl.textContent = `${profile.name} register ho gaya!`;
   });
 
-  function renderRegisteredList() {
-    const list = document.getElementById('registered-list');
-    const students = getStudents();
-    if (students.length === 0) {
-      list.innerHTML = '<div style="font-size:12px;color:#6b8c76;">Abhi koi student register nahi hai.</div>';
-      return;
-    }
-    list.innerHTML = students.map((s, i) => `
-      <div class="list-item">
-        <span>${s.name}</span>
-        <button class="del-btn" data-idx="${i}">✕</button>
-      </div>
-    `).join('');
-    list.querySelectorAll('.del-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = parseInt(btn.dataset.idx);
-        const students = getStudents();
-        students.splice(idx, 1);
-        saveStudents(students);
-        renderRegisteredList();
-      });
-    });
-  }
-
-  // ---------- CAMERA (ATTENDANCE) ----------
+  // ---------- ATTENDANCE CAMERA ----------
   const videoAtt = document.getElementById('video-att');
   const overlayAtt = document.getElementById('overlay-att');
   let attendLoopId = null;
   let attendCameraStarted = false;
 
   document.getElementById('start-attend-btn').addEventListener('click', async () => {
-    const students = getStudents();
-    if (students.length === 0) {
-      statusEl.textContent = 'Pehle kam se kam ek student register karo.';
+    const list = currentAttMode === 'student' ? getStudents() : getTeachers();
+    if (list.length === 0) {
+      statusEl.textContent = `Pehle kam se kam ek ${currentAttMode === 'student' ? 'student' : 'teacher'} register karo.`;
       return;
     }
     if (!attendCameraStarted) {
@@ -243,14 +388,16 @@
   });
 
   function startAttendanceLoop() {
-    const labeledDescriptors = getStudents().map(s =>
-      new faceapi.LabeledFaceDescriptors(s.name, [new Float32Array(s.descriptor)])
+    const mode = currentAttMode;
+    const list = mode === 'student' ? getStudents() : getTeachers();
+    const labeledDescriptors = list.map(p =>
+      new faceapi.LabeledFaceDescriptors(p.id, [new Float32Array(p.descriptor)])
     );
     const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
+    const idToName = {}; list.forEach(p => idToName[p.id] = p.name);
 
     attendLoopId = setInterval(async () => {
       if (!modelsReady || videoAtt.readyState !== 4) return;
-
       const dims = { width: videoAtt.videoWidth, height: videoAtt.videoHeight };
       overlayAtt.width = dims.width; overlayAtt.height = dims.height;
 
@@ -263,7 +410,7 @@
       detections.forEach(det => {
         const match = matcher.findBestMatch(det.descriptor);
         const box = det.detection.box;
-        const label = match.label === 'unknown' ? 'Unknown' : match.label;
+        const label = match.label === 'unknown' ? 'Unknown' : (idToName[match.label] || 'Unknown');
         ctx.strokeStyle = match.label === 'unknown' ? '#ff6b6b' : '#1db954';
         ctx.lineWidth = 2;
         ctx.strokeRect(box.x, box.y, box.width, box.height);
@@ -272,7 +419,7 @@
         ctx.fillText(label, box.x, box.y - 6);
 
         if (match.label !== 'unknown') {
-          markAttendance(match.label);
+          markAttendance(mode, match.label, label);
         }
       });
     }, 700);
@@ -282,25 +429,182 @@
     if (attendLoopId) { clearInterval(attendLoopId); attendLoopId = null; }
   }
 
-  function markAttendance(name) {
-    const log = getLog();
+  function markAttendance(type, personId, name) {
+    const logType = type === 'student' ? 'students' : 'teachers';
+    const log = getLog(logType);
     const today = todayStr();
-    const already = log.find(e => e.name === name && e.date === today);
+    const already = log.find(e => e.id === personId && e.date === today);
     if (already) return;
-
-    const now = new Date();
-    log.push({ name, date: today, time: now.toLocaleTimeString() });
-    saveLog(log);
+    log.push({ id: personId, name, date: today, time: new Date().toLocaleTimeString() });
+    saveLog(logType, log);
     statusEl.textContent = `✅ ${name} ki attendance lag gayi!`;
   }
 
+  // ---------- STUDENTS PANEL ----------
+  function calcAttendancePct(id, logType, addedAt) {
+    const log = getLog(logType).filter(e => e.id === id);
+    const daysSinceAdded = Math.max(1, Math.ceil((Date.now() - addedAt) / (1000 * 60 * 60 * 24)));
+    const uniqueDates = new Set(log.map(e => e.date)).size;
+    const pct = Math.min(100, Math.round((uniqueDates / daysSinceAdded) * 100));
+    return { pct, presentDays: uniqueDates };
+  }
+
+  function renderStudentsList() {
+    const students = getStudents();
+    const today = todayStr();
+    const todayLog = getLog('students').filter(e => e.date === today);
+    document.getElementById('total-students-num').textContent = students.length;
+    document.getElementById('present-today-students').textContent = todayLog.length;
+    document.getElementById('absent-today-students').textContent = Math.max(0, students.length - todayLog.length);
+
+    const list = document.getElementById('students-list');
+    if (students.length === 0) {
+      list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi student register nahi hai.</div>';
+      return;
+    }
+    list.innerHTML = students.map(s => {
+      const { pct, presentDays } = calcAttendancePct(s.id, 'students', s.addedAt);
+      return `
+      <div class="profile-card" data-id="${s.id}">
+        <div class="profile-top" onclick="this.parentElement.classList.toggle('expanded')">
+          <div>
+            <div class="profile-name">${s.name}</div>
+            <div class="profile-meta">${s.branch || '-'}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="stat-num" style="font-size:15px;">${pct}%</div>
+          </div>
+        </div>
+        <div class="pct-bar"><div class="pct-fill" style="width:${pct}%;"></div></div>
+        <div class="profile-detail-grid">
+          Father's Name: <span>${s.father || '-'}</span><br>
+          Mother's Name: <span>${s.mother || '-'}</span><br>
+          DOB: <span>${s.dob || '-'}</span><br>
+          Mobile: <span>${s.mobile || '-'}</span><br>
+          Present Days: <span>${presentDays}</span>
+          <div class="profile-actions">
+            <button class="btn small secondary" onclick="openEditModal('student','${s.id}')">Edit</button>
+            <button class="btn small danger" onclick="deleteProfile('student','${s.id}')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderTeachersList() {
+    const teachers = getTeachers();
+    const today = todayStr();
+    const todayLog = getLog('teachers').filter(e => e.date === today);
+    document.getElementById('total-teachers-num').textContent = teachers.length;
+    document.getElementById('present-today-teachers').textContent = todayLog.length;
+    document.getElementById('absent-today-teachers').textContent = Math.max(0, teachers.length - todayLog.length);
+
+    const list = document.getElementById('teachers-list');
+    if (teachers.length === 0) {
+      list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi teacher register nahi hai.</div>';
+      return;
+    }
+    list.innerHTML = teachers.map(t => {
+      const { pct, presentDays } = calcAttendancePct(t.id, 'teachers', t.addedAt);
+      return `
+      <div class="profile-card" data-id="${t.id}">
+        <div class="profile-top" onclick="this.parentElement.classList.toggle('expanded')">
+          <div>
+            <div class="profile-name">${t.name}</div>
+            <div class="profile-meta">${t.dept || '-'}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="stat-num" style="font-size:15px;">${pct}%</div>
+          </div>
+        </div>
+        <div class="pct-bar"><div class="pct-fill" style="width:${pct}%;"></div></div>
+        <div class="profile-detail-grid">
+          Mobile: <span>${t.mobile || '-'}</span><br>
+          Present Days: <span>${presentDays}</span>
+          <div class="profile-actions">
+            <button class="btn small secondary" onclick="openEditModal('teacher','${t.id}')">Edit</button>
+            <button class="btn small danger" onclick="deleteProfile('teacher','${t.id}')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function deleteProfile(type, id) {
+    if (!confirm('Ye profile delete karni hai?')) return;
+    if (type === 'student') {
+      saveStudents(getStudents().filter(s => s.id !== id));
+      renderStudentsList();
+    } else {
+      saveTeachers(getTeachers().filter(t => t.id !== id));
+      renderTeachersList();
+    }
+  }
+
+  // ---------- EDIT MODAL ----------
+  let editingType = null, editingId = null;
+  function openEditModal(type, id) {
+    editingType = type; editingId = id;
+    const list = type === 'student' ? getStudents() : getTeachers();
+    const p = list.find(x => x.id === id);
+    document.getElementById('modal-title').textContent = 'Edit ' + (type === 'student' ? 'Student' : 'Teacher');
+
+    let html = `<label class="field-label">Naam</label><input type="text" id="m-name" value="${p.name || ''}">`;
+    if (type === 'student') {
+      html += `
+        <label class="field-label">Branch</label>
+        <select id="m-branch">
+          ${['','CSE','ECE','ME','CE','EE','IT','CSE-AI/ML','Other'].map(b => `<option ${p.branch===b?'selected':''}>${b}</option>`).join('')}
+        </select>
+        <label class="field-label">Pita ka naam</label><input type="text" id="m-father" value="${p.father || ''}">
+        <label class="field-label">Mata ka naam</label><input type="text" id="m-mother" value="${p.mother || ''}">
+        <label class="field-label">DOB</label><input type="date" id="m-dob" value="${p.dob || ''}">
+        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">
+      `;
+    } else {
+      html += `
+        <label class="field-label">Department</label><input type="text" id="m-dept" value="${p.dept || ''}">
+        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">
+      `;
+    }
+    document.getElementById('modal-body').innerHTML = html;
+    document.getElementById('modal-overlay').style.display = 'flex';
+  }
+
+  document.getElementById('modal-cancel-btn').addEventListener('click', () => {
+    document.getElementById('modal-overlay').style.display = 'none';
+  });
+
+  document.getElementById('modal-save-btn').addEventListener('click', () => {
+    const list = editingType === 'student' ? getStudents() : getTeachers();
+    const p = list.find(x => x.id === editingId);
+    p.name = document.getElementById('m-name').value.trim();
+    if (editingType === 'student') {
+      p.branch = document.getElementById('m-branch').value;
+      p.father = document.getElementById('m-father').value.trim();
+      p.mother = document.getElementById('m-mother').value.trim();
+      p.dob = document.getElementById('m-dob').value;
+      p.mobile = document.getElementById('m-mobile').value.trim();
+      saveStudents(list);
+      renderStudentsList();
+    } else {
+      p.dept = document.getElementById('m-dept').value.trim();
+      p.mobile = document.getElementById('m-mobile').value.trim();
+      saveTeachers(list);
+      renderTeachersList();
+    }
+    document.getElementById('modal-overlay').style.display = 'none';
+  });
+
   // ---------- LOG PANEL ----------
+  document.getElementById('log-date').addEventListener('change', renderLog);
+
   function renderLog() {
-    document.getElementById('today-date').textContent = todayStr();
-    const log = getLog().filter(e => e.date === todayStr());
-    const el = document.getElementById('attendance-log');
+    const date = document.getElementById('log-date').value || todayStr();
+    const log = getLog(currentLogType).filter(e => e.date === date);
+    const el = document.getElementById('log-list');
     if (log.length === 0) {
-      el.innerHTML = '<div style="font-size:12px;color:#6b8c76;">Aaj abhi tak koi attendance nahi lagi.</div>';
+      el.innerHTML = '<div style="font-size:12px;color:#6b8c76;margin-bottom:10px;">Is din ka koi attendance record nahi hai.</div>';
       return;
     }
     el.innerHTML = log.map(e => `
@@ -312,23 +616,25 @@
   }
 
   document.getElementById('export-btn').addEventListener('click', () => {
-    const log = getLog();
-    if (log.length === 0) { statusEl.textContent = 'Log khali hai.'; return; }
+    const date = document.getElementById('log-date').value || todayStr();
+    const log = getLog(currentLogType).filter(e => e.date === date);
+    if (log.length === 0) { statusEl.textContent = 'Is din ka log khali hai.'; return; }
     let csv = 'Name,Date,Time\n';
     log.forEach(e => { csv += `${e.name},${e.date},${e.time}\n`; });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'attendance-log.csv';
+    a.href = url; a.download = `attendance-${currentLogType}-${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   });
 
   document.getElementById('clear-log-btn').addEventListener('click', () => {
-    if (confirm('Pura attendance log clear karna hai?')) {
-      saveLog([]);
-      renderLog();
-    }
+    const date = document.getElementById('log-date').value || todayStr();
+    if (!confirm(`${date} ka pura log clear karna hai?`)) return;
+    const remaining = getLog(currentLogType).filter(e => e.date !== date);
+    saveLog(currentLogType, remaining);
+    renderLog();
   });
 </script>
 </body>
