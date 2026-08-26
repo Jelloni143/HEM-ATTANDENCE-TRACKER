@@ -3,45 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Face Attendance System - Mr. HEM</title>
+<title>Face Attendance Pro - Mr. HEM</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
     font-family:'Segoe UI', Arial, sans-serif; background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);
     min-height:100vh; color:#fff; padding:14px;
   }
-  #app { max-width:480px; margin:0 auto; }
-  h1 { font-size:18px; text-align:center; margin-bottom:12px; color:#a9ffcb; }
+  #app { max-width:480px; margin:0 auto; display:none; }
+  h1 { font-size:18px; text-align:center; margin-bottom:10px; color:#a9ffcb; }
+
+  .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .role-badge { font-size:11px; background:#1f4a30; color:#a9ffcb; padding:4px 10px; border-radius:12px; }
+  #logout-btn { background:#5c1f1f; color:#ffb3b3; border:none; padding:6px 12px; border-radius:12px; font-size:11px; }
 
   .tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
   .tab-btn {
-    flex:1; min-width:70px; padding:9px 4px; border:none; border-radius:10px; background:#132b1e; color:#8fd6a8; font-size:12px; font-weight:600;
+    flex:1; min-width:64px; padding:9px 4px; border:none; border-radius:10px; background:#132b1e; color:#8fd6a8; font-size:11px; font-weight:600;
   }
   .tab-btn.active { background:#1db954; color:#fff; }
 
-  .panel { display:none; }
-  .panel.active { display:block; }
-
+  .panel { display:none; } .panel.active { display:block; }
   .subtoggle { display:flex; gap:8px; margin-bottom:12px; }
-  .sub-btn {
-    flex:1; padding:9px; border:none; border-radius:20px; background:#0e1a12; color:#8fd6a8; font-size:13px; font-weight:600; border:1px solid #1f4a30;
-  }
+  .sub-btn { flex:1; padding:9px; border:none; border-radius:20px; background:#0e1a12; color:#8fd6a8; font-size:13px; font-weight:600; border:1px solid #1f4a30; }
   .sub-btn.active { background:#1f4a30; color:#fff; }
 
   .card { background:#132b1e; border-radius:16px; padding:16px; margin-bottom:14px; }
-
   #video-wrap-register, #video-wrap-attend { position:relative; width:100%; border-radius:12px; overflow:hidden; background:#000; margin-bottom:10px; }
   video { width:100%; display:block; transform:scaleX(-1); }
   canvas.overlay { position:absolute; top:0; left:0; transform:scaleX(-1); }
 
-  input[type="text"], input[type="tel"], input[type="date"], select {
+  input[type="text"], input[type="tel"], input[type="date"], input[type="month"], input[type="time"], input[type="number"], input[type="password"], select {
     width:100%; padding:11px; border-radius:10px; border:none; background:#0e1a12; color:#fff; font-size:14px; margin-bottom:10px;
   }
   label.field-label { font-size:12px; color:#8fd6a8; margin-bottom:4px; display:block; }
 
-  .btn {
-    width:100%; padding:13px; border:none; border-radius:22px; background:#1db954; color:#fff; font-weight:600; font-size:15px; margin-bottom:10px;
-  }
+  .btn { width:100%; padding:13px; border:none; border-radius:22px; background:#1db954; color:#fff; font-weight:600; font-size:15px; margin-bottom:10px; }
   .btn:active { background:#159e46; }
   .btn:disabled { background:#2b4636; color:#8fd6a8; }
   .btn.secondary { background:#2b4636; color:#dff5e6; }
@@ -49,6 +46,7 @@
   .btn.small { padding:8px; font-size:12px; border-radius:14px; width:auto; }
 
   #status { text-align:center; font-size:13px; color:#8fd6a8; min-height:18px; margin-bottom:8px; }
+  #capture-instruction { text-align:center; font-size:14px; color:#fff; background:#1f4a30; padding:8px; border-radius:10px; margin-bottom:10px; }
 
   .profile-card { background:#0e1a12; border-radius:12px; padding:12px; margin-bottom:10px; }
   .profile-top { display:flex; justify-content:space-between; align-items:center; }
@@ -58,22 +56,25 @@
   .profile-detail-grid span { color:#8fd6a8; }
   .profile-card.expanded .profile-detail-grid { display:block; }
   .profile-actions { display:flex; gap:8px; margin-top:8px; }
-  .attendance-pct { font-size:12px; margin-top:4px; }
   .pct-bar { height:6px; border-radius:3px; background:#1f4a30; margin-top:4px; overflow:hidden; }
   .pct-fill { height:100%; background:#1db954; }
+  .pct-fill.low { background:#e05656; }
+  .pending-tag { background:#8a5a1f; color:#ffe0b3; font-size:10px; padding:2px 8px; border-radius:8px; margin-left:6px; }
 
-  .list-item {
-    display:flex; justify-content:space-between; align-items:center; background:#0e1a12;
-    padding:10px 12px; border-radius:10px; margin-bottom:8px; font-size:14px;
-  }
+  .alert-banner { background:#4a1f1f; border:1px solid #7a2f2f; color:#ffb3b3; padding:10px 12px; border-radius:10px; font-size:12.5px; margin-bottom:12px; line-height:1.6; }
+
+  .list-item { display:flex; justify-content:space-between; align-items:center; background:#0e1a12; padding:10px 12px; border-radius:10px; margin-bottom:8px; font-size:14px; }
   .list-item .meta { font-size:11px; color:#6b8c76; }
+  .status-tag { font-size:10px; padding:2px 8px; border-radius:8px; }
+  .status-present { background:#1f4a30; color:#a9ffcb; }
+  .status-late { background:#5c4a1f; color:#ffe0a3; }
 
-  #modal-overlay {
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:50; align-items:flex-end; justify-content:center;
-  }
-  #modal-box {
-    background:#132b1e; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:18px; max-height:85vh; overflow-y:auto;
-  }
+  #toast-wrap { position:absolute; bottom:10px; left:10px; right:10px; display:flex; flex-direction:column; gap:6px; z-index:6; pointer-events:none; }
+  .toast { background:rgba(29,185,84,0.9); color:#fff; padding:8px 12px; border-radius:10px; font-size:13px; animation:fadeout 2.5s forwards; }
+  @keyframes fadeout { 0%{opacity:1;} 70%{opacity:1;} 100%{opacity:0;} }
+
+  #modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:50; align-items:flex-end; justify-content:center; }
+  #modal-box { background:#132b1e; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:18px; max-height:85vh; overflow-y:auto; }
   #modal-title { font-size:16px; color:#a9ffcb; margin-bottom:12px; }
 
   .stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:6px; }
@@ -81,19 +82,62 @@
   .stat-num { font-size:18px; font-weight:700; color:#a9ffcb; }
   .stat-label { font-size:10px; color:#8fd6a8; margin-top:2px; }
 
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:10px; }
+  .cal-cell { aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; background:#0e1a12; color:#6b8c76; }
+  .cal-cell.present { background:#1db954; color:#fff; }
+  .cal-cell.late { background:#c9932f; color:#fff; }
+  .cal-cell.absent { background:#5c1f1f; color:#ffb3b3; }
+
+  #login-screen { max-width:400px; margin:60px auto; }
+  #login-screen h1 { margin-bottom:20px; }
+  .login-tabs { display:flex; gap:8px; margin-bottom:16px; }
+
   #footer { text-align:center; font-size:11px; color:#6b8c76; margin-top:10px; }
+
+  @media print {
+    body * { visibility:hidden; }
+    #print-report, #print-report * { visibility:visible; }
+    #print-report { position:absolute; top:0; left:0; width:100%; color:#000; background:#fff; }
+    .cal-cell { color:#000 !important; border:1px solid #ccc; }
+  }
 </style>
 </head>
 <body>
-<div id="app">
-  <h1>🎓 Face Attendance System</h1>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="register">Register</button>
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div id="login-screen">
+  <h1>🎓 Face Attendance Pro</h1>
+  <div class="login-tabs">
+    <button class="sub-btn active" id="login-tab-college">College Login</button>
+    <button class="sub-btn" id="login-tab-admin">Admin Login</button>
+  </div>
+  <div class="card">
+    <label class="field-label">Username</label>
+    <input type="text" id="login-user" placeholder="Username">
+    <label class="field-label">Password</label>
+    <input type="password" id="login-pass" placeholder="Password">
+    <button class="btn" id="login-btn">Login</button>
+    <div id="login-status" style="text-align:center;font-size:12px;color:#ff8a8a;"></div>
+    <div style="text-align:center;font-size:11px;color:#6b8c76;margin-top:8px;">Default — College: college / college123 &nbsp;|&nbsp; Admin: admin / admin123</div>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="app">
+  <div class="top-bar">
+    <span class="role-badge" id="role-badge"></span>
+    <button id="logout-btn">Logout</button>
+  </div>
+  <h1>🎓 Face Attendance Pro</h1>
+
+  <div class="tabs" id="tabs-row">
+    <button class="tab-btn active" data-tab="register" id="tabbtn-register">Register</button>
     <button class="tab-btn" data-tab="attendance">Attendance</button>
     <button class="tab-btn" data-tab="students">Students</button>
     <button class="tab-btn" data-tab="teachers">Teachers</button>
     <button class="tab-btn" data-tab="log">Log</button>
+    <button class="tab-btn" data-tab="reports">Reports</button>
+    <button class="tab-btn" data-tab="settings" id="tabbtn-settings">Settings</button>
   </div>
 
   <div id="status">Models load ho rahe hain, thoda ruko...</div>
@@ -105,50 +149,57 @@
       <button class="sub-btn" data-role="teacher" id="reg-role-teacher">Teacher</button>
     </div>
 
+    <div class="card" id="pending-faces-card" style="display:none;">
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">⏳ Face Register Pending</div>
+      <div id="pending-faces-list"></div>
+    </div>
+
     <div class="card">
       <div id="video-wrap-register">
         <video id="video-reg" autoplay muted playsinline></video>
         <canvas class="overlay" id="overlay-reg"></canvas>
       </div>
 
-      <!-- STUDENT FIELDS -->
       <div id="student-fields">
         <label class="field-label">Naam</label>
         <input type="text" id="s-name" placeholder="Student ka pura naam">
-
         <label class="field-label">B.Tech Branch</label>
         <select id="s-branch">
           <option value="">Branch select karo</option>
           <option>CSE</option><option>ECE</option><option>ME</option><option>CE</option>
           <option>EE</option><option>IT</option><option>CSE-AI/ML</option><option>Other</option>
         </select>
-
         <label class="field-label">Pita ka naam</label>
         <input type="text" id="s-father" placeholder="Father's Name">
-
         <label class="field-label">Mata ka naam</label>
         <input type="text" id="s-mother" placeholder="Mother's Name">
-
         <label class="field-label">Date of Birth</label>
         <input type="date" id="s-dob">
-
         <label class="field-label">Mobile Number</label>
         <input type="tel" id="s-mobile" placeholder="10 digit mobile number" maxlength="10">
       </div>
 
-      <!-- TEACHER FIELDS -->
       <div id="teacher-fields" style="display:none;">
         <label class="field-label">Naam</label>
         <input type="text" id="t-name" placeholder="Teacher ka pura naam">
-
         <label class="field-label">Department / Subject</label>
         <input type="text" id="t-dept" placeholder="e.g. Computer Science">
-
         <label class="field-label">Mobile Number</label>
         <input type="tel" id="t-mobile" placeholder="10 digit mobile number" maxlength="10">
       </div>
 
-      <button class="btn" id="capture-btn" disabled>📸 Face Capture Karo & Save</button>
+      <div id="capture-instruction" style="display:none;"></div>
+      <button class="btn" id="capture-btn" disabled>📸 Face Capture Shuru Karo</button>
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">📥 Bulk Import (CSV)</div>
+      <div style="font-size:11px;color:#6b8c76;margin-bottom:8px;">
+        Student CSV format: Name,Branch,Father,Mother,DOB,Mobile<br>
+        Teacher CSV format: Name,Department,Mobile
+      </div>
+      <input type="file" id="csv-file" accept=".csv" style="margin-bottom:10px;color:#fff;">
+      <button class="btn secondary" id="csv-import-btn">CSV Import Karo</button>
     </div>
   </div>
 
@@ -162,7 +213,9 @@
       <div id="video-wrap-attend">
         <video id="video-att" autoplay muted playsinline></video>
         <canvas class="overlay" id="overlay-att"></canvas>
+        <div id="toast-wrap"></div>
       </div>
+      <div style="font-size:11px;color:#6b8c76;text-align:center;margin-bottom:8px;">Ek saath multiple face aane par sabki attendance turant lag jaayegi</div>
       <button class="btn" id="start-attend-btn" disabled>▶ Camera On Karo & Attendance Shuru Karo</button>
       <button class="btn secondary" id="stop-attend-btn" style="display:none;">⏹ Rokho</button>
     </div>
@@ -177,6 +230,7 @@
         <div class="stat-box"><div class="stat-num" id="absent-today-students">0</div><div class="stat-label">Absent Aaj</div></div>
       </div>
     </div>
+    <div id="students-alert"></div>
     <div id="students-list"></div>
   </div>
 
@@ -189,6 +243,7 @@
         <div class="stat-box"><div class="stat-num" id="absent-today-teachers">0</div><div class="stat-label">Absent Aaj</div></div>
       </div>
     </div>
+    <div id="teachers-alert"></div>
     <div id="teachers-list"></div>
   </div>
 
@@ -204,6 +259,50 @@
       <div id="log-list"></div>
       <button class="btn secondary" id="export-btn">⬇ CSV Export Karo</button>
       <button class="btn danger" id="clear-log-btn">Is Din Ka Log Clear Karo</button>
+    </div>
+  </div>
+
+  <!-- ================= REPORTS PANEL ================= -->
+  <div class="panel" id="panel-reports">
+    <div class="card">
+      <div class="subtoggle">
+        <button class="sub-btn active" data-reptype="students" id="rep-type-students">Students</button>
+        <button class="sub-btn" data-reptype="teachers" id="rep-type-teachers">Teachers</button>
+      </div>
+      <label class="field-label">Person select karo</label>
+      <select id="rep-person"></select>
+      <label class="field-label">Month select karo</label>
+      <input type="month" id="rep-month">
+      <div id="print-report">
+        <div id="report-header" style="text-align:center;font-weight:700;margin-bottom:6px;"></div>
+        <div class="cal-grid" id="rep-cal"></div>
+        <div id="report-summary" style="text-align:center;font-size:13px;margin-top:10px;"></div>
+      </div>
+      <button class="btn secondary" id="print-btn" style="margin-top:12px;">🖨 Print / Save as PDF</button>
+    </div>
+  </div>
+
+  <!-- ================= SETTINGS PANEL ================= -->
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">Class Time Settings</div>
+      <label class="field-label">Class Start Time</label>
+      <input type="time" id="set-class-time">
+      <label class="field-label">Late Threshold (minutes)</label>
+      <input type="number" id="set-late-threshold" min="0" max="120">
+      <button class="btn" id="save-settings-btn">Save Settings</button>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">Change Login Credentials</div>
+      <label class="field-label">College Username</label>
+      <input type="text" id="set-college-user">
+      <label class="field-label">College Password</label>
+      <input type="text" id="set-college-pass">
+      <label class="field-label">Admin Username</label>
+      <input type="text" id="set-admin-user">
+      <label class="field-label">Admin Password</label>
+      <input type="text" id="set-admin-pass">
+      <button class="btn secondary" id="save-auth-btn">Update Credentials</button>
     </div>
   </div>
 
@@ -228,8 +327,71 @@
   let currentRegRole = 'student';
   let currentAttMode = 'student';
   let currentLogType = 'students';
+  let currentRepType = 'students';
+  let currentRole = null; // 'admin' or 'college'
 
-  // ---------- TAB SWITCHING ----------
+  // ================= AUTH =================
+  function initAuth() {
+    if (!localStorage.getItem('fa_auth')) {
+      localStorage.setItem('fa_auth', JSON.stringify({
+        admin: { user: 'admin', pass: 'admin123' },
+        college: { user: 'college', pass: 'college123' }
+      }));
+    }
+  }
+  initAuth();
+  function getAuth() { return JSON.parse(localStorage.getItem('fa_auth')); }
+  function saveAuth(a) { localStorage.setItem('fa_auth', JSON.stringify(a)); }
+
+  let loginRole = 'college';
+  document.getElementById('login-tab-college').addEventListener('click', () => {
+    loginRole = 'college';
+    document.getElementById('login-tab-college').classList.add('active');
+    document.getElementById('login-tab-admin').classList.remove('active');
+  });
+  document.getElementById('login-tab-admin').addEventListener('click', () => {
+    loginRole = 'admin';
+    document.getElementById('login-tab-admin').classList.add('active');
+    document.getElementById('login-tab-college').classList.remove('active');
+  });
+
+  document.getElementById('login-btn').addEventListener('click', () => {
+    const u = document.getElementById('login-user').value.trim();
+    const p = document.getElementById('login-pass').value;
+    const auth = getAuth()[loginRole];
+    if (u === auth.user && p === auth.pass) {
+      currentRole = loginRole;
+      sessionStorage.setItem('fa_role', currentRole);
+      enterApp();
+    } else {
+      document.getElementById('login-status').textContent = 'Galat username ya password.';
+    }
+  });
+
+  function enterApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('role-badge').textContent = currentRole === 'admin' ? '👑 Admin' : '🏫 College Staff';
+    if (currentRole !== 'admin') {
+      document.getElementById('tabbtn-register').style.display = 'none';
+      document.getElementById('tabbtn-settings').style.display = 'none';
+    }
+    loadModels();
+    renderPendingFaces();
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('fa_role');
+    location.reload();
+  });
+
+  // auto-login if session exists
+  if (sessionStorage.getItem('fa_role')) {
+    currentRole = sessionStorage.getItem('fa_role');
+    enterApp();
+  }
+
+  // ================= TAB SWITCHING =================
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -239,11 +401,12 @@
       if (btn.dataset.tab === 'students') renderStudentsList();
       if (btn.dataset.tab === 'teachers') renderTeachersList();
       if (btn.dataset.tab === 'log') renderLog();
+      if (btn.dataset.tab === 'reports') { populateReportPersons(); renderReport(); }
+      if (btn.dataset.tab === 'settings') loadSettingsForm();
       if (btn.dataset.tab !== 'attendance') stopAttendanceLoop();
     });
   });
 
-  // ---------- REGISTER ROLE TOGGLE ----------
   document.getElementById('reg-role-student').addEventListener('click', () => setRegRole('student'));
   document.getElementById('reg-role-teacher').addEventListener('click', () => setRegRole('teacher'));
   function setRegRole(role) {
@@ -252,9 +415,10 @@
     document.getElementById('reg-role-teacher').classList.toggle('active', role === 'teacher');
     document.getElementById('student-fields').style.display = role === 'student' ? 'block' : 'none';
     document.getElementById('teacher-fields').style.display = role === 'teacher' ? 'block' : 'none';
+    resetCaptureFlow();
+    renderPendingFaces();
   }
 
-  // ---------- ATTENDANCE MODE TOGGLE ----------
   document.getElementById('att-mode-student').addEventListener('click', () => setAttMode('student'));
   document.getElementById('att-mode-teacher').addEventListener('click', () => setAttMode('teacher'));
   function setAttMode(mode) {
@@ -266,7 +430,6 @@
     document.getElementById('stop-attend-btn').style.display = 'none';
   }
 
-  // ---------- LOG TYPE TOGGLE ----------
   document.getElementById('log-type-students').addEventListener('click', () => { currentLogType = 'students'; toggleLogType(); });
   document.getElementById('log-type-teachers').addEventListener('click', () => { currentLogType = 'teachers'; toggleLogType(); });
   function toggleLogType() {
@@ -275,20 +438,33 @@
     renderLog();
   }
 
-  // ---------- DATA STORE ----------
+  document.getElementById('rep-type-students').addEventListener('click', () => { currentRepType = 'students'; toggleRepType(); });
+  document.getElementById('rep-type-teachers').addEventListener('click', () => { currentRepType = 'teachers'; toggleRepType(); });
+  function toggleRepType() {
+    document.getElementById('rep-type-students').classList.toggle('active', currentRepType === 'students');
+    document.getElementById('rep-type-teachers').classList.toggle('active', currentRepType === 'teachers');
+    populateReportPersons(); renderReport();
+  }
+
+  // ================= DATA STORE =================
   function getStudents() { return JSON.parse(localStorage.getItem('fa_students') || '[]'); }
   function saveStudents(list) { localStorage.setItem('fa_students', JSON.stringify(list)); }
   function getTeachers() { return JSON.parse(localStorage.getItem('fa_teachers') || '[]'); }
   function saveTeachers(list) { localStorage.setItem('fa_teachers', JSON.stringify(list)); }
   function getLog(type) { return JSON.parse(localStorage.getItem('fa_log_' + type) || '[]'); }
   function saveLog(type, list) { localStorage.setItem('fa_log_' + type, JSON.stringify(list)); }
+  function getSettings() {
+    return JSON.parse(localStorage.getItem('fa_settings') || '{"classStartTime":"09:00","lateThresholdMin":15}');
+  }
+  function saveSettings(s) { localStorage.setItem('fa_settings', JSON.stringify(s)); }
 
   function todayStr() { return new Date().toISOString().split('T')[0]; }
   document.getElementById('log-date').value = todayStr();
+  document.getElementById('rep-month').value = todayStr().slice(0, 7);
 
   function uid() { return 'id_' + Date.now() + '_' + Math.floor(Math.random() * 10000); }
 
-  // ---------- LOAD MODELS ----------
+  // ================= LOAD MODELS =================
   async function loadModels() {
     try {
       await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
@@ -298,14 +474,12 @@
       statusEl.textContent = 'Ready! Camera on karke shuru karo.';
       document.getElementById('capture-btn').disabled = false;
       document.getElementById('start-attend-btn').disabled = false;
+      startCamera(document.getElementById('video-reg'));
     } catch (e) {
       statusEl.textContent = 'Model load nahi ho paya — internet check karo.';
     }
   }
-  loadModels();
 
-  // ---------- CAMERA (REGISTER) ----------
-  const videoReg = document.getElementById('video-reg');
   async function startCamera(videoEl) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
@@ -316,59 +490,181 @@
       return false;
     }
   }
-  startCamera(videoReg);
+
+  // ================= MULTI-ANGLE CAPTURE FLOW =================
+  const captureSteps = ['Seedha camera me dekho 👀', 'Thoda LEFT ghumo ⬅️', 'Thoda RIGHT ghumo ➡️'];
+  let captureStepIdx = 0;
+  let capturedDescriptors = [];
+  let editingPendingId = null; // if capturing face for an existing pending profile
+
+  function resetCaptureFlow() {
+    captureStepIdx = 0;
+    capturedDescriptors = [];
+    editingPendingId = null;
+    document.getElementById('capture-instruction').style.display = 'none';
+    document.getElementById('capture-btn').textContent = '📸 Face Capture Shuru Karo';
+  }
 
   document.getElementById('capture-btn').addEventListener('click', async () => {
     if (!modelsReady) return;
+    const videoReg = document.getElementById('video-reg');
 
-    let profile = null;
-    if (currentRegRole === 'student') {
-      const name = document.getElementById('s-name').value.trim();
-      const branch = document.getElementById('s-branch').value;
-      const father = document.getElementById('s-father').value.trim();
-      const mother = document.getElementById('s-mother').value.trim();
-      const dob = document.getElementById('s-dob').value;
-      const mobile = document.getElementById('s-mobile').value.trim();
-      if (!name || !branch || !mobile) { statusEl.textContent = 'Naam, Branch aur Mobile Number zaroori hai.'; return; }
-      profile = { id: uid(), name, branch, father, mother, dob, mobile, addedAt: Date.now() };
-    } else {
-      const name = document.getElementById('t-name').value.trim();
-      const dept = document.getElementById('t-dept').value.trim();
-      const mobile = document.getElementById('t-mobile').value.trim();
-      if (!name || !dept || !mobile) { statusEl.textContent = 'Naam, Department aur Mobile Number zaroori hai.'; return; }
-      profile = { id: uid(), name, dept, mobile, addedAt: Date.now() };
+    if (captureStepIdx === 0 && capturedDescriptors.length === 0) {
+      // validate fields first (unless completing a pending face-only capture)
+      if (!editingPendingId) {
+        const valid = validateCurrentFields();
+        if (!valid) return;
+      }
+      document.getElementById('capture-instruction').style.display = 'block';
     }
 
+    document.getElementById('capture-instruction').textContent = captureSteps[captureStepIdx];
     statusEl.textContent = 'Face detect ho raha hai...';
+
     const detection = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks().withFaceDescriptor();
-
     if (!detection) {
       statusEl.textContent = 'Face detect nahi hua, seedhe camera ke saamne aao aur dobara try karo.';
       return;
     }
-    profile.descriptor = Array.from(detection.descriptor);
+    capturedDescriptors.push(Array.from(detection.descriptor));
+    captureStepIdx++;
 
-    if (currentRegRole === 'student') {
-      const list = getStudents(); list.push(profile); saveStudents(list);
-      ['s-name','s-branch','s-father','s-mother','s-dob','s-mobile'].forEach(id => document.getElementById(id).value = '');
+    if (captureStepIdx < captureSteps.length) {
+      document.getElementById('capture-instruction').textContent = captureSteps[captureStepIdx];
+      document.getElementById('capture-btn').textContent = `📸 Capture ${captureStepIdx + 1}/3`;
+      statusEl.textContent = `Step ${captureStepIdx}/3 done. Ab agla angle capture karo.`;
     } else {
-      const list = getTeachers(); list.push(profile); saveTeachers(list);
-      ['t-name','t-dept','t-mobile'].forEach(id => document.getElementById(id).value = '');
+      finalizeRegistration();
     }
-    statusEl.textContent = `${profile.name} register ho gaya!`;
   });
 
-  // ---------- ATTENDANCE CAMERA ----------
+  function validateCurrentFields() {
+    if (currentRegRole === 'student') {
+      const name = document.getElementById('s-name').value.trim();
+      const branch = document.getElementById('s-branch').value;
+      const mobile = document.getElementById('s-mobile').value.trim();
+      if (!name || !branch || !mobile) { statusEl.textContent = 'Naam, Branch aur Mobile Number zaroori hai.'; return false; }
+    } else {
+      const name = document.getElementById('t-name').value.trim();
+      const dept = document.getElementById('t-dept').value.trim();
+      const mobile = document.getElementById('t-mobile').value.trim();
+      if (!name || !dept || !mobile) { statusEl.textContent = 'Naam, Department aur Mobile Number zaroori hai.'; return false; }
+    }
+    return true;
+  }
+
+  function finalizeRegistration() {
+    if (editingPendingId) {
+      const listKey = currentRegRole === 'student' ? getStudents : getTeachers;
+      const saveKey = currentRegRole === 'student' ? saveStudents : saveTeachers;
+      const list = listKey();
+      const p = list.find(x => x.id === editingPendingId);
+      p.descriptors = capturedDescriptors;
+      p.facePending = false;
+      saveKey(list);
+      statusEl.textContent = `${p.name} ki face register ho gayi!`;
+    } else {
+      let profile;
+      if (currentRegRole === 'student') {
+        profile = {
+          id: uid(),
+          name: document.getElementById('s-name').value.trim(),
+          branch: document.getElementById('s-branch').value,
+          father: document.getElementById('s-father').value.trim(),
+          mother: document.getElementById('s-mother').value.trim(),
+          dob: document.getElementById('s-dob').value,
+          mobile: document.getElementById('s-mobile').value.trim(),
+          descriptors: capturedDescriptors, facePending: false, addedAt: Date.now()
+        };
+        const list = getStudents(); list.push(profile); saveStudents(list);
+        ['s-name','s-branch','s-father','s-mother','s-dob','s-mobile'].forEach(id => document.getElementById(id).value = '');
+      } else {
+        profile = {
+          id: uid(),
+          name: document.getElementById('t-name').value.trim(),
+          dept: document.getElementById('t-dept').value.trim(),
+          mobile: document.getElementById('t-mobile').value.trim(),
+          descriptors: capturedDescriptors, facePending: false, addedAt: Date.now()
+        };
+        const list = getTeachers(); list.push(profile); saveTeachers(list);
+        ['t-name','t-dept','t-mobile'].forEach(id => document.getElementById(id).value = '');
+      }
+      statusEl.textContent = `${profile.name} register ho gaya!`;
+    }
+    resetCaptureFlow();
+    renderPendingFaces();
+  }
+
+  // ================= PENDING FACES (from bulk import) =================
+  function renderPendingFaces() {
+    const list = currentRegRole === 'student' ? getStudents() : getTeachers();
+    const pending = list.filter(p => p.facePending);
+    const card = document.getElementById('pending-faces-card');
+    const el = document.getElementById('pending-faces-list');
+    if (pending.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    el.innerHTML = pending.map(p => `
+      <div class="list-item">
+        <span>${p.name}</span>
+        <button class="btn small" onclick="startPendingCapture('${p.id}')">Face Capture Karo</button>
+      </div>
+    `).join('');
+  }
+
+  function startPendingCapture(id) {
+    resetCaptureFlow();
+    editingPendingId = id;
+    statusEl.textContent = 'Ab is student/teacher ki face capture karo.';
+    document.getElementById('capture-instruction').style.display = 'block';
+    document.getElementById('capture-instruction').textContent = captureSteps[0];
+  }
+
+  // ================= CSV BULK IMPORT =================
+  document.getElementById('csv-import-btn').addEventListener('click', () => {
+    const file = document.getElementById('csv-file').files[0];
+    if (!file) { statusEl.textContent = 'Pehle CSV file select karo.'; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      let count = 0;
+      if (currentRegRole === 'student') {
+        const list = getStudents();
+        lines.forEach(line => {
+          const [name, branch, father, mother, dob, mobile] = line.split(',').map(x => (x || '').trim());
+          if (!name) return;
+          list.push({ id: uid(), name, branch: branch || '', father: father || '', mother: mother || '', dob: dob || '', mobile: mobile || '', descriptors: [], facePending: true, addedAt: Date.now() });
+          count++;
+        });
+        saveStudents(list);
+      } else {
+        const list = getTeachers();
+        lines.forEach(line => {
+          const [name, dept, mobile] = line.split(',').map(x => (x || '').trim());
+          if (!name) return;
+          list.push({ id: uid(), name, dept: dept || '', mobile: mobile || '', descriptors: [], facePending: true, addedAt: Date.now() });
+          count++;
+        });
+        saveTeachers(list);
+      }
+      statusEl.textContent = `${count} profiles import ho gaye. Ab unki face register karo.`;
+      renderPendingFaces();
+    };
+    reader.readAsText(file);
+  });
+
+  // ================= ATTENDANCE (FAST MULTI-FACE) =================
   const videoAtt = document.getElementById('video-att');
   const overlayAtt = document.getElementById('overlay-att');
   let attendLoopId = null;
   let attendCameraStarted = false;
+  let markedThisSession = new Set();
 
   document.getElementById('start-attend-btn').addEventListener('click', async () => {
     const list = currentAttMode === 'student' ? getStudents() : getTeachers();
-    if (list.length === 0) {
-      statusEl.textContent = `Pehle kam se kam ek ${currentAttMode === 'student' ? 'student' : 'teacher'} register karo.`;
+    const ready = list.filter(p => p.descriptors && p.descriptors.length > 0);
+    if (ready.length === 0) {
+      statusEl.textContent = `Pehle kam se kam ek ${currentAttMode === 'student' ? 'student' : 'teacher'} ki face register karo.`;
       return;
     }
     if (!attendCameraStarted) {
@@ -378,6 +674,7 @@
     }
     document.getElementById('start-attend-btn').style.display = 'none';
     document.getElementById('stop-attend-btn').style.display = 'block';
+    markedThisSession = new Set();
     startAttendanceLoop();
   });
 
@@ -389,19 +686,21 @@
 
   function startAttendanceLoop() {
     const mode = currentAttMode;
-    const list = mode === 'student' ? getStudents() : getTeachers();
+    const list = (mode === 'student' ? getStudents() : getTeachers()).filter(p => p.descriptors && p.descriptors.length > 0);
     const labeledDescriptors = list.map(p =>
-      new faceapi.LabeledFaceDescriptors(p.id, [new Float32Array(p.descriptor)])
+      new faceapi.LabeledFaceDescriptors(p.id, p.descriptors.map(d => new Float32Array(d)))
     );
     const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
     const idToName = {}; list.forEach(p => idToName[p.id] = p.name);
+
+    const detectorOpts = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
 
     attendLoopId = setInterval(async () => {
       if (!modelsReady || videoAtt.readyState !== 4) return;
       const dims = { width: videoAtt.videoWidth, height: videoAtt.videoHeight };
       overlayAtt.width = dims.width; overlayAtt.height = dims.height;
 
-      const detections = await faceapi.detectAllFaces(videoAtt, new faceapi.TinyFaceDetectorOptions())
+      const detections = await faceapi.detectAllFaces(videoAtt, detectorOpts)
         .withFaceLandmarks().withFaceDescriptors();
 
       const ctx = overlayAtt.getContext('2d');
@@ -422,7 +721,7 @@
           markAttendance(mode, match.label, label);
         }
       });
-    }, 700);
+    }, 350);
   }
 
   function stopAttendanceLoop() {
@@ -431,16 +730,36 @@
 
   function markAttendance(type, personId, name) {
     const logType = type === 'student' ? 'students' : 'teachers';
-    const log = getLog(logType);
     const today = todayStr();
+    const sessionKey = logType + '_' + personId;
+    if (markedThisSession.has(sessionKey)) return;
+
+    const log = getLog(logType);
     const already = log.find(e => e.id === personId && e.date === today);
-    if (already) return;
-    log.push({ id: personId, name, date: today, time: new Date().toLocaleTimeString() });
+    if (already) { markedThisSession.add(sessionKey); return; }
+
+    const settings = getSettings();
+    const now = new Date();
+    const [ch, cm] = settings.classStartTime.split(':').map(Number);
+    const cutoff = new Date(now); cutoff.setHours(ch, cm + Number(settings.lateThresholdMin), 0, 0);
+    const status = now <= cutoff ? 'Present' : 'Late';
+
+    log.push({ id: personId, name, date: today, time: now.toLocaleTimeString(), status });
     saveLog(logType, log);
-    statusEl.textContent = `✅ ${name} ki attendance lag gayi!`;
+    markedThisSession.add(sessionKey);
+    showToast(`✅ ${name} — ${status}`);
   }
 
-  // ---------- STUDENTS PANEL ----------
+  function showToast(msg) {
+    const wrap = document.getElementById('toast-wrap');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+
+  // ================= ATTENDANCE % =================
   function calcAttendancePct(id, logType, addedAt) {
     const log = getLog(logType).filter(e => e.id === id);
     const daysSinceAdded = Math.max(1, Math.ceil((Date.now() - addedAt) / (1000 * 60 * 60 * 24)));
@@ -449,6 +768,7 @@
     return { pct, presentDays: uniqueDates };
   }
 
+  // ================= STUDENTS / TEACHERS LISTS =================
   function renderStudentsList() {
     const students = getStudents();
     const today = todayStr();
@@ -457,35 +777,35 @@
     document.getElementById('present-today-students').textContent = todayLog.length;
     document.getElementById('absent-today-students').textContent = Math.max(0, students.length - todayLog.length);
 
+    const low = students.map(s => ({ ...s, ...calcAttendancePct(s.id, 'students', s.addedAt) })).filter(s => s.pct < 75);
+    const alertEl = document.getElementById('students-alert');
+    alertEl.innerHTML = low.length > 0
+      ? `<div class="alert-banner">⚠️ Low Attendance Alert (75% se kam):<br>${low.map(s => `${s.name} — ${s.pct}%`).join('<br>')}</div>`
+      : '';
+
     const list = document.getElementById('students-list');
-    if (students.length === 0) {
-      list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi student register nahi hai.</div>';
-      return;
-    }
+    const canEdit = currentRole === 'admin';
+    if (students.length === 0) { list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi student register nahi hai.</div>'; return; }
     list.innerHTML = students.map(s => {
       const { pct, presentDays } = calcAttendancePct(s.id, 'students', s.addedAt);
       return `
       <div class="profile-card" data-id="${s.id}">
         <div class="profile-top" onclick="this.parentElement.classList.toggle('expanded')">
-          <div>
-            <div class="profile-name">${s.name}</div>
-            <div class="profile-meta">${s.branch || '-'}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="stat-num" style="font-size:15px;">${pct}%</div>
-          </div>
+          <div><div class="profile-name">${s.name}${s.facePending ? '<span class="pending-tag">Face Pending</span>' : ''}</div>
+          <div class="profile-meta">${s.branch || '-'}</div></div>
+          <div class="stat-num" style="font-size:15px;">${pct}%</div>
         </div>
-        <div class="pct-bar"><div class="pct-fill" style="width:${pct}%;"></div></div>
+        <div class="pct-bar"><div class="pct-fill ${pct < 75 ? 'low' : ''}" style="width:${pct}%;"></div></div>
         <div class="profile-detail-grid">
           Father's Name: <span>${s.father || '-'}</span><br>
           Mother's Name: <span>${s.mother || '-'}</span><br>
           DOB: <span>${s.dob || '-'}</span><br>
           Mobile: <span>${s.mobile || '-'}</span><br>
           Present Days: <span>${presentDays}</span>
-          <div class="profile-actions">
+          ${canEdit ? `<div class="profile-actions">
             <button class="btn small secondary" onclick="openEditModal('student','${s.id}')">Edit</button>
             <button class="btn small danger" onclick="deleteProfile('student','${s.id}')">Delete</button>
-          </div>
+          </div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -499,82 +819,69 @@
     document.getElementById('present-today-teachers').textContent = todayLog.length;
     document.getElementById('absent-today-teachers').textContent = Math.max(0, teachers.length - todayLog.length);
 
+    const low = teachers.map(t => ({ ...t, ...calcAttendancePct(t.id, 'teachers', t.addedAt) })).filter(t => t.pct < 75);
+    const alertEl = document.getElementById('teachers-alert');
+    alertEl.innerHTML = low.length > 0
+      ? `<div class="alert-banner">⚠️ Low Attendance Alert (75% se kam):<br>${low.map(t => `${t.name} — ${t.pct}%`).join('<br>')}</div>`
+      : '';
+
     const list = document.getElementById('teachers-list');
-    if (teachers.length === 0) {
-      list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi teacher register nahi hai.</div>';
-      return;
-    }
+    const canEdit = currentRole === 'admin';
+    if (teachers.length === 0) { list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi teacher register nahi hai.</div>'; return; }
     list.innerHTML = teachers.map(t => {
       const { pct, presentDays } = calcAttendancePct(t.id, 'teachers', t.addedAt);
       return `
       <div class="profile-card" data-id="${t.id}">
         <div class="profile-top" onclick="this.parentElement.classList.toggle('expanded')">
-          <div>
-            <div class="profile-name">${t.name}</div>
-            <div class="profile-meta">${t.dept || '-'}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="stat-num" style="font-size:15px;">${pct}%</div>
-          </div>
+          <div><div class="profile-name">${t.name}${t.facePending ? '<span class="pending-tag">Face Pending</span>' : ''}</div>
+          <div class="profile-meta">${t.dept || '-'}</div></div>
+          <div class="stat-num" style="font-size:15px;">${pct}%</div>
         </div>
-        <div class="pct-bar"><div class="pct-fill" style="width:${pct}%;"></div></div>
+        <div class="pct-bar"><div class="pct-fill ${pct < 75 ? 'low' : ''}" style="width:${pct}%;"></div></div>
         <div class="profile-detail-grid">
           Mobile: <span>${t.mobile || '-'}</span><br>
           Present Days: <span>${presentDays}</span>
-          <div class="profile-actions">
+          ${canEdit ? `<div class="profile-actions">
             <button class="btn small secondary" onclick="openEditModal('teacher','${t.id}')">Edit</button>
             <button class="btn small danger" onclick="deleteProfile('teacher','${t.id}')">Delete</button>
-          </div>
+          </div>` : ''}
         </div>
       </div>`;
     }).join('');
   }
 
   function deleteProfile(type, id) {
+    if (currentRole !== 'admin') return;
     if (!confirm('Ye profile delete karni hai?')) return;
-    if (type === 'student') {
-      saveStudents(getStudents().filter(s => s.id !== id));
-      renderStudentsList();
-    } else {
-      saveTeachers(getTeachers().filter(t => t.id !== id));
-      renderTeachersList();
-    }
+    if (type === 'student') { saveStudents(getStudents().filter(s => s.id !== id)); renderStudentsList(); }
+    else { saveTeachers(getTeachers().filter(t => t.id !== id)); renderTeachersList(); }
   }
 
-  // ---------- EDIT MODAL ----------
+  // ================= EDIT MODAL =================
   let editingType = null, editingId = null;
   function openEditModal(type, id) {
     editingType = type; editingId = id;
     const list = type === 'student' ? getStudents() : getTeachers();
     const p = list.find(x => x.id === id);
     document.getElementById('modal-title').textContent = 'Edit ' + (type === 'student' ? 'Student' : 'Teacher');
-
     let html = `<label class="field-label">Naam</label><input type="text" id="m-name" value="${p.name || ''}">`;
     if (type === 'student') {
       html += `
         <label class="field-label">Branch</label>
-        <select id="m-branch">
-          ${['','CSE','ECE','ME','CE','EE','IT','CSE-AI/ML','Other'].map(b => `<option ${p.branch===b?'selected':''}>${b}</option>`).join('')}
-        </select>
+        <select id="m-branch">${['','CSE','ECE','ME','CE','EE','IT','CSE-AI/ML','Other'].map(b => `<option ${p.branch===b?'selected':''}>${b}</option>`).join('')}</select>
         <label class="field-label">Pita ka naam</label><input type="text" id="m-father" value="${p.father || ''}">
         <label class="field-label">Mata ka naam</label><input type="text" id="m-mother" value="${p.mother || ''}">
         <label class="field-label">DOB</label><input type="date" id="m-dob" value="${p.dob || ''}">
-        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">
-      `;
+        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">`;
     } else {
       html += `
         <label class="field-label">Department</label><input type="text" id="m-dept" value="${p.dept || ''}">
-        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">
-      `;
+        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">`;
     }
     document.getElementById('modal-body').innerHTML = html;
     document.getElementById('modal-overlay').style.display = 'flex';
   }
-
-  document.getElementById('modal-cancel-btn').addEventListener('click', () => {
-    document.getElementById('modal-overlay').style.display = 'none';
-  });
-
+  document.getElementById('modal-cancel-btn').addEventListener('click', () => { document.getElementById('modal-overlay').style.display = 'none'; });
   document.getElementById('modal-save-btn').addEventListener('click', () => {
     const list = editingType === 'student' ? getStudents() : getTeachers();
     const p = list.find(x => x.id === editingId);
@@ -585,57 +892,121 @@
       p.mother = document.getElementById('m-mother').value.trim();
       p.dob = document.getElementById('m-dob').value;
       p.mobile = document.getElementById('m-mobile').value.trim();
-      saveStudents(list);
-      renderStudentsList();
+      saveStudents(list); renderStudentsList();
     } else {
       p.dept = document.getElementById('m-dept').value.trim();
       p.mobile = document.getElementById('m-mobile').value.trim();
-      saveTeachers(list);
-      renderTeachersList();
+      saveTeachers(list); renderTeachersList();
     }
     document.getElementById('modal-overlay').style.display = 'none';
   });
 
-  // ---------- LOG PANEL ----------
+  // ================= LOG PANEL =================
   document.getElementById('log-date').addEventListener('change', renderLog);
-
   function renderLog() {
     const date = document.getElementById('log-date').value || todayStr();
     const log = getLog(currentLogType).filter(e => e.date === date);
     const el = document.getElementById('log-list');
-    if (log.length === 0) {
-      el.innerHTML = '<div style="font-size:12px;color:#6b8c76;margin-bottom:10px;">Is din ka koi attendance record nahi hai.</div>';
-      return;
-    }
+    if (log.length === 0) { el.innerHTML = '<div style="font-size:12px;color:#6b8c76;margin-bottom:10px;">Is din ka koi attendance record nahi hai.</div>'; return; }
     el.innerHTML = log.map(e => `
       <div class="list-item">
         <span>${e.name}</span>
-        <span class="meta">${e.time}</span>
-      </div>
-    `).join('');
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span class="status-tag ${e.status === 'Late' ? 'status-late' : 'status-present'}">${e.status || 'Present'}</span>
+          <span class="meta">${e.time}</span>
+        </span>
+      </div>`).join('');
   }
-
   document.getElementById('export-btn').addEventListener('click', () => {
     const date = document.getElementById('log-date').value || todayStr();
     const log = getLog(currentLogType).filter(e => e.date === date);
     if (log.length === 0) { statusEl.textContent = 'Is din ka log khali hai.'; return; }
-    let csv = 'Name,Date,Time\n';
-    log.forEach(e => { csv += `${e.name},${e.date},${e.time}\n`; });
+    let csv = 'Name,Date,Time,Status\n';
+    log.forEach(e => { csv += `${e.name},${e.date},${e.time},${e.status || 'Present'}\n`; });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `attendance-${currentLogType}-${date}.csv`;
-    a.click();
+    const a = document.createElement('a'); a.href = url; a.download = `attendance-${currentLogType}-${date}.csv`; a.click();
     URL.revokeObjectURL(url);
   });
-
   document.getElementById('clear-log-btn').addEventListener('click', () => {
     const date = document.getElementById('log-date').value || todayStr();
     if (!confirm(`${date} ka pura log clear karna hai?`)) return;
-    const remaining = getLog(currentLogType).filter(e => e.date !== date);
-    saveLog(currentLogType, remaining);
+    saveLog(currentLogType, getLog(currentLogType).filter(e => e.date !== date));
     renderLog();
+  });
+
+  // ================= REPORTS (Monthly Calendar) =================
+  function populateReportPersons() {
+    const list = currentRepType === 'students' ? getStudents() : getTeachers();
+    const sel = document.getElementById('rep-person');
+    sel.innerHTML = list.map(p => `<option value="${p.id}">${p.name}</option>`).join('') || '<option value="">Koi profile nahi</option>';
+  }
+  document.getElementById('rep-person').addEventListener('change', renderReport);
+  document.getElementById('rep-month').addEventListener('change', renderReport);
+
+  function renderReport() {
+    const personId = document.getElementById('rep-person').value;
+    const month = document.getElementById('rep-month').value;
+    const calEl = document.getElementById('rep-cal');
+    const headerEl = document.getElementById('report-header');
+    const summaryEl = document.getElementById('report-summary');
+    if (!personId || !month) { calEl.innerHTML = ''; headerEl.textContent = ''; summaryEl.textContent = ''; return; }
+
+    const list = currentRepType === 'students' ? getStudents() : getTeachers();
+    const person = list.find(p => p.id === personId);
+    const log = getLog(currentRepType).filter(e => e.id === personId);
+    const [year, mon] = month.split('-').map(Number);
+    const daysInMonth = new Date(year, mon, 0).getDate();
+    const today = new Date();
+
+    headerEl.textContent = `${person ? person.name : ''} — ${month}`;
+
+    let presentCount = 0, lateCount = 0, absentCount = 0;
+    let html = '';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(mon).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const entry = log.find(e => e.date === dateStr);
+      const cellDate = new Date(year, mon - 1, d);
+      let cls = '', label = d;
+      if (cellDate > today) { cls = ''; }
+      else if (entry && entry.status === 'Late') { cls = 'late'; lateCount++; }
+      else if (entry) { cls = 'present'; presentCount++; }
+      else { cls = 'absent'; absentCount++; }
+      html += `<div class="cal-cell ${cls}">${label}</div>`;
+    }
+    calEl.innerHTML = html;
+    const totalMarked = presentCount + lateCount + absentCount;
+    const pct = totalMarked > 0 ? Math.round(((presentCount + lateCount) / totalMarked) * 100) : 0;
+    summaryEl.innerHTML = `Present: ${presentCount} &nbsp; Late: ${lateCount} &nbsp; Absent: ${absentCount} &nbsp;| Monthly %: <b>${pct}%</b>`;
+  }
+
+  document.getElementById('print-btn').addEventListener('click', () => window.print());
+
+  // ================= SETTINGS =================
+  function loadSettingsForm() {
+    const s = getSettings();
+    document.getElementById('set-class-time').value = s.classStartTime;
+    document.getElementById('set-late-threshold').value = s.lateThresholdMin;
+    const auth = getAuth();
+    document.getElementById('set-college-user').value = auth.college.user;
+    document.getElementById('set-college-pass').value = auth.college.pass;
+    document.getElementById('set-admin-user').value = auth.admin.user;
+    document.getElementById('set-admin-pass').value = auth.admin.pass;
+  }
+  document.getElementById('save-settings-btn').addEventListener('click', () => {
+    saveSettings({
+      classStartTime: document.getElementById('set-class-time').value || '09:00',
+      lateThresholdMin: Number(document.getElementById('set-late-threshold').value) || 0
+    });
+    statusEl.textContent = 'Settings save ho gayi.';
+  });
+  document.getElementById('save-auth-btn').addEventListener('click', () => {
+    saveAuth({
+      college: { user: document.getElementById('set-college-user').value.trim(), pass: document.getElementById('set-college-pass').value },
+      admin: { user: document.getElementById('set-admin-user').value.trim(), pass: document.getElementById('set-admin-pass').value }
+    });
+    statusEl.textContent = 'Login credentials update ho gaye.';
   });
 </script>
 </body>
-</html>
+ </html>
