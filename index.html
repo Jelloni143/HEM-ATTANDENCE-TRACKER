@@ -3,32 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Face Attendance Pro - Mr. HEM</title>
+<title>Face Attendance Pro+ - Mr. HEM</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
     font-family:'Segoe UI', Arial, sans-serif; background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);
-    min-height:100vh; color:#fff; padding:14px;
+    min-height:100vh; color:#fff; padding:14px; transition:background .3s,color .3s;
   }
+  body.light { background:linear-gradient(160deg,#eef7f1,#dcefe3,#cfe8da); color:#123320; }
   #app { max-width:480px; margin:0 auto; display:none; }
   h1 { font-size:18px; text-align:center; margin-bottom:10px; color:#a9ffcb; }
+  body.light h1 { color:#1a7a45; }
 
-  .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:6px; }
   .role-badge { font-size:11px; background:#1f4a30; color:#a9ffcb; padding:4px 10px; border-radius:12px; }
-  #logout-btn { background:#5c1f1f; color:#ffb3b3; border:none; padding:6px 12px; border-radius:12px; font-size:11px; }
+  #theme-btn, #logout-btn { background:#2b4636; color:#dff5e6; border:none; padding:6px 10px; border-radius:12px; font-size:11px; }
+  #logout-btn { background:#5c1f1f; color:#ffb3b3; }
 
   .tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
-  .tab-btn {
-    flex:1; min-width:64px; padding:9px 4px; border:none; border-radius:10px; background:#132b1e; color:#8fd6a8; font-size:11px; font-weight:600;
-  }
+  .tab-btn { flex:1; min-width:64px; padding:8px 4px; border:none; border-radius:10px; background:#132b1e; color:#8fd6a8; font-size:10.5px; font-weight:600; }
   .tab-btn.active { background:#1db954; color:#fff; }
+  body.light .tab-btn { background:#dcefe3; color:#1a7a45; }
+  body.light .tab-btn.active { background:#1db954; color:#fff; }
 
   .panel { display:none; } .panel.active { display:block; }
-  .subtoggle { display:flex; gap:8px; margin-bottom:12px; }
-  .sub-btn { flex:1; padding:9px; border:none; border-radius:20px; background:#0e1a12; color:#8fd6a8; font-size:13px; font-weight:600; border:1px solid #1f4a30; }
+  .subtoggle { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .sub-btn { flex:1; padding:9px; border:none; border-radius:20px; background:#0e1a12; color:#8fd6a8; font-size:12px; font-weight:600; border:1px solid #1f4a30; }
   .sub-btn.active { background:#1f4a30; color:#fff; }
+  body.light .sub-btn { background:#fff; color:#1a7a45; border:1px solid #b7ddc3; }
+  body.light .sub-btn.active { background:#1db954; color:#fff; }
 
   .card { background:#132b1e; border-radius:16px; padding:16px; margin-bottom:14px; }
+  body.light .card { background:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+
   #video-wrap-register, #video-wrap-attend { position:relative; width:100%; border-radius:12px; overflow:hidden; background:#000; margin-bottom:10px; }
   video { width:100%; display:block; transform:scaleX(-1); }
   canvas.overlay { position:absolute; top:0; left:0; transform:scaleX(-1); }
@@ -36,26 +43,33 @@
   input[type="text"], input[type="tel"], input[type="date"], input[type="month"], input[type="time"], input[type="number"], input[type="password"], select {
     width:100%; padding:11px; border-radius:10px; border:none; background:#0e1a12; color:#fff; font-size:14px; margin-bottom:10px;
   }
+  body.light input, body.light select { background:#f0f7f2; color:#123320; border:1px solid #c8e6d3; }
   label.field-label { font-size:12px; color:#8fd6a8; margin-bottom:4px; display:block; }
+  body.light label.field-label { color:#1a7a45; }
 
   .btn { width:100%; padding:13px; border:none; border-radius:22px; background:#1db954; color:#fff; font-weight:600; font-size:15px; margin-bottom:10px; }
   .btn:active { background:#159e46; }
   .btn:disabled { background:#2b4636; color:#8fd6a8; }
   .btn.secondary { background:#2b4636; color:#dff5e6; }
   .btn.danger { background:#5c1f1f; color:#ffb3b3; }
-  .btn.small { padding:8px; font-size:12px; border-radius:14px; width:auto; }
+  .btn.warn { background:#8a5a1f; color:#ffe0b3; }
+  .btn.small { padding:8px; font-size:11px; border-radius:14px; width:auto; }
 
   #status { text-align:center; font-size:13px; color:#8fd6a8; min-height:18px; margin-bottom:8px; }
+  body.light #status { color:#1a7a45; }
   #capture-instruction { text-align:center; font-size:14px; color:#fff; background:#1f4a30; padding:8px; border-radius:10px; margin-bottom:10px; }
 
   .profile-card { background:#0e1a12; border-radius:12px; padding:12px; margin-bottom:10px; }
+  body.light .profile-card { background:#f0f7f2; }
   .profile-top { display:flex; justify-content:space-between; align-items:center; }
   .profile-name { font-size:15px; font-weight:700; color:#a9ffcb; }
+  body.light .profile-name { color:#1a7a45; }
   .profile-meta { font-size:11px; color:#6b8c76; margin-top:2px; }
   .profile-detail-grid { display:none; margin-top:10px; font-size:12.5px; line-height:1.8; color:#dff5e6; border-top:1px solid #1f4a30; padding-top:8px; }
+  body.light .profile-detail-grid { color:#234; border-top:1px solid #c8e6d3; }
   .profile-detail-grid span { color:#8fd6a8; }
   .profile-card.expanded .profile-detail-grid { display:block; }
-  .profile-actions { display:flex; gap:8px; margin-top:8px; }
+  .profile-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
   .pct-bar { height:6px; border-radius:3px; background:#1f4a30; margin-top:4px; overflow:hidden; }
   .pct-fill { height:100%; background:#1db954; }
   .pct-fill.low { background:#e05656; }
@@ -64,10 +78,12 @@
   .alert-banner { background:#4a1f1f; border:1px solid #7a2f2f; color:#ffb3b3; padding:10px 12px; border-radius:10px; font-size:12.5px; margin-bottom:12px; line-height:1.6; }
 
   .list-item { display:flex; justify-content:space-between; align-items:center; background:#0e1a12; padding:10px 12px; border-radius:10px; margin-bottom:8px; font-size:14px; }
+  body.light .list-item { background:#f0f7f2; }
   .list-item .meta { font-size:11px; color:#6b8c76; }
   .status-tag { font-size:10px; padding:2px 8px; border-radius:8px; }
   .status-present { background:#1f4a30; color:#a9ffcb; }
   .status-late { background:#5c4a1f; color:#ffe0a3; }
+  .status-absent { background:#5c1f1f; color:#ffb3b3; }
 
   #toast-wrap { position:absolute; bottom:10px; left:10px; right:10px; display:flex; flex-direction:column; gap:6px; z-index:6; pointer-events:none; }
   .toast { background:rgba(29,185,84,0.9); color:#fff; padding:8px 12px; border-radius:10px; font-size:13px; animation:fadeout 2.5s forwards; }
@@ -75,11 +91,15 @@
 
   #modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:50; align-items:flex-end; justify-content:center; }
   #modal-box { background:#132b1e; width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:18px; max-height:85vh; overflow-y:auto; }
+  body.light #modal-box { background:#fff; }
   #modal-title { font-size:16px; color:#a9ffcb; margin-bottom:12px; }
+  body.light #modal-title { color:#1a7a45; }
 
   .stat-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:6px; }
   .stat-box { background:#0e1a12; border-radius:10px; padding:10px 4px; text-align:center; }
+  body.light .stat-box { background:#f0f7f2; }
   .stat-num { font-size:18px; font-weight:700; color:#a9ffcb; }
+  body.light .stat-num { color:#1a7a45; }
   .stat-label { font-size:10px; color:#8fd6a8; margin-top:2px; }
 
   .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:10px; }
@@ -88,9 +108,11 @@
   .cal-cell.late { background:#c9932f; color:#fff; }
   .cal-cell.absent { background:#5c1f1f; color:#ffb3b3; }
 
-  #login-screen { max-width:400px; margin:60px auto; }
+  .medal { font-size:18px; margin-right:6px; }
+
+  #login-screen { max-width:400px; margin:40px auto; }
   #login-screen h1 { margin-bottom:20px; }
-  .login-tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .login-tabs { display:flex; gap:6px; margin-bottom:16px; }
 
   #footer { text-align:center; font-size:11px; color:#6b8c76; margin-top:10px; }
 
@@ -99,6 +121,7 @@
     #print-report, #print-report * { visibility:visible; }
     #print-report { position:absolute; top:0; left:0; width:100%; color:#000; background:#fff; }
     .cal-cell { color:#000 !important; border:1px solid #ccc; }
+    .print-row { border-bottom:1px solid #ccc; padding:6px 0; font-size:12px; }
   }
 </style>
 </head>
@@ -106,10 +129,11 @@
 
 <!-- ===================== LOGIN SCREEN ===================== -->
 <div id="login-screen">
-  <h1>🎓 Face Attendance Pro</h1>
+  <h1>🎓 Face Attendance Pro+</h1>
   <div class="login-tabs">
-    <button class="sub-btn active" id="login-tab-college">College Login</button>
-    <button class="sub-btn" id="login-tab-admin">Admin Login</button>
+    <button class="sub-btn active" data-lr="college">College</button>
+    <button class="sub-btn" data-lr="teacher">Teacher</button>
+    <button class="sub-btn" data-lr="admin">Admin</button>
   </div>
   <div class="card">
     <label class="field-label">Username</label>
@@ -118,7 +142,7 @@
     <input type="password" id="login-pass" placeholder="Password">
     <button class="btn" id="login-btn">Login</button>
     <div id="login-status" style="text-align:center;font-size:12px;color:#ff8a8a;"></div>
-    <div style="text-align:center;font-size:11px;color:#6b8c76;margin-top:8px;">Default — College: college / college123 &nbsp;|&nbsp; Admin: admin / admin123</div>
+    <div style="text-align:center;font-size:11px;color:#6b8c76;margin-top:8px;">Default — College: college / college123 &nbsp;|&nbsp; Admin: admin / admin123<br>Teacher login admin dwara banaya jaata hai</div>
   </div>
 </div>
 
@@ -126,9 +150,10 @@
 <div id="app">
   <div class="top-bar">
     <span class="role-badge" id="role-badge"></span>
+    <button id="theme-btn">🌓 Theme</button>
     <button id="logout-btn">Logout</button>
   </div>
-  <h1>🎓 Face Attendance Pro</h1>
+  <h1>🎓 Face Attendance Pro+</h1>
 
   <div class="tabs" id="tabs-row">
     <button class="tab-btn active" data-tab="register" id="tabbtn-register">Register</button>
@@ -137,10 +162,12 @@
     <button class="tab-btn" data-tab="teachers">Teachers</button>
     <button class="tab-btn" data-tab="log">Log</button>
     <button class="tab-btn" data-tab="reports">Reports</button>
+    <button class="tab-btn" data-tab="leaderboard">Rank</button>
+    <button class="tab-btn" data-tab="approvals" id="tabbtn-approvals">Approvals</button>
     <button class="tab-btn" data-tab="settings" id="tabbtn-settings">Settings</button>
   </div>
 
-  <div id="status">Models load ho rahe hain, thoda ruko...</div>
+  <div id="status">Connect ho raha hai...</div>
 
   <!-- ================= REGISTER PANEL ================= -->
   <div class="panel active" id="panel-register">
@@ -186,6 +213,10 @@
         <input type="text" id="t-dept" placeholder="e.g. Computer Science">
         <label class="field-label">Mobile Number</label>
         <input type="tel" id="t-mobile" placeholder="10 digit mobile number" maxlength="10">
+        <label class="field-label">Login Username (is teacher ke liye)</label>
+        <input type="text" id="t-username" placeholder="Unique username">
+        <label class="field-label">Login Password</label>
+        <input type="text" id="t-password" placeholder="Password">
       </div>
 
       <div id="capture-instruction" style="display:none;"></div>
@@ -195,10 +226,10 @@
     <div class="card">
       <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">📥 Bulk Import (CSV)</div>
       <div style="font-size:11px;color:#6b8c76;margin-bottom:8px;">
-        Student CSV format: Name,Branch,Father,Mother,DOB,Mobile<br>
-        Teacher CSV format: Name,Department,Mobile
+        Student CSV: Name,Branch,Father,Mother,DOB,Mobile<br>
+        Teacher CSV: Name,Department,Mobile,Username,Password
       </div>
-      <input type="file" id="csv-file" accept=".csv" style="margin-bottom:10px;color:#fff;">
+      <input type="file" id="csv-file" accept=".csv" style="margin-bottom:10px;">
       <button class="btn secondary" id="csv-import-btn">CSV Import Karo</button>
     </div>
   </div>
@@ -257,7 +288,8 @@
         <button class="sub-btn" data-logtype="teachers" id="log-type-teachers">Teachers</button>
       </div>
       <div id="log-list"></div>
-      <button class="btn secondary" id="export-btn">⬇ CSV Export Karo</button>
+      <button class="btn secondary" id="export-btn">⬇ CSV Export</button>
+      <button class="btn warn" id="print-daily-btn">🖨 Full Daily Report PDF</button>
       <button class="btn danger" id="clear-log-btn">Is Din Ka Log Clear Karo</button>
     </div>
   </div>
@@ -273,23 +305,50 @@
       <select id="rep-person"></select>
       <label class="field-label">Month select karo</label>
       <input type="month" id="rep-month">
-      <div id="print-report">
-        <div id="report-header" style="text-align:center;font-weight:700;margin-bottom:6px;"></div>
-        <div class="cal-grid" id="rep-cal"></div>
-        <div id="report-summary" style="text-align:center;font-size:13px;margin-top:10px;"></div>
-      </div>
+      <div id="report-header" style="text-align:center;font-weight:700;margin-bottom:6px;"></div>
+      <div class="cal-grid" id="rep-cal"></div>
+      <div id="report-summary" style="text-align:center;font-size:13px;margin-top:10px;"></div>
       <button class="btn secondary" id="print-btn" style="margin-top:12px;">🖨 Print / Save as PDF</button>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">Poori Registration List PDF</div>
+      <button class="btn warn" id="print-roster-students-btn">🖨 All Students Data PDF</button>
+      <button class="btn warn" id="print-roster-teachers-btn">🖨 All Teachers Data PDF</button>
+    </div>
+  </div>
+
+  <!-- Hidden printable area shared by all print actions -->
+  <div id="print-report" style="display:none;"></div>
+
+  <!-- ================= LEADERBOARD PANEL ================= -->
+  <div class="panel" id="panel-leaderboard">
+    <div class="card">
+      <div class="subtoggle">
+        <button class="sub-btn active" data-lbtype="students" id="lb-type-students">Students</button>
+        <button class="sub-btn" data-lbtype="teachers" id="lb-type-teachers">Teachers</button>
+      </div>
+      <div id="leaderboard-list"></div>
+    </div>
+  </div>
+
+  <!-- ================= APPROVALS PANEL (admin only) ================= -->
+  <div class="panel" id="panel-approvals">
+    <div class="card">
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">Pending Delete Requests</div>
+      <div id="approvals-list"></div>
     </div>
   </div>
 
   <!-- ================= SETTINGS PANEL ================= -->
   <div class="panel" id="panel-settings">
     <div class="card">
-      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">Class Time Settings</div>
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">Class Timing (Auto-Absent ke liye)</div>
       <label class="field-label">Class Start Time</label>
       <input type="time" id="set-class-time">
       <label class="field-label">Late Threshold (minutes)</label>
       <input type="number" id="set-late-threshold" min="0" max="120">
+      <label class="field-label">Class End Time (is time ke baad absent auto-mark)</label>
+      <input type="time" id="set-class-end">
       <button class="btn" id="save-settings-btn">Save Settings</button>
     </div>
     <div class="card">
@@ -304,9 +363,15 @@
       <input type="text" id="set-admin-pass">
       <button class="btn secondary" id="save-auth-btn">Update Credentials</button>
     </div>
+    <div class="card">
+      <div style="font-size:13px;color:#8fd6a8;margin-bottom:8px;">Backup & Restore (Poora Data)</div>
+      <button class="btn secondary" id="backup-btn">⬇ Full Backup Download (JSON)</button>
+      <input type="file" id="restore-file" accept=".json" style="margin-bottom:10px;">
+      <button class="btn danger" id="restore-btn">⬆ Restore From Backup (Overwrite)</button>
+    </div>
   </div>
 
-  <div id="footer">Mr. HEM / Developed by Mr. HEM — Sab data sirf isi device me local save hota hai</div>
+  <div id="footer">Mr. HEM / Developed by Mr. HEM — Firebase se connected, sab devices me sync hota hai</div>
 </div>
 
 <!-- ===== EDIT MODAL ===== -->
@@ -319,8 +384,26 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <script>
+  // ================= FIREBASE INIT =================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCca_cvShk_9NUwq2pbSfomlxoxt279BSU",
+    authDomain: "friend-group-ca43a.firebaseapp.com",
+    databaseURL: "https://friend-group-ca43a-default-rtdb.firebaseio.com",
+    projectId: "friend-group-ca43a",
+    storageBucket: "friend-group-ca43a.firebasestorage.app",
+    messagingSenderId: "873156765363",
+    appId: "1:873156765363:web:7db5add680f48ce4d472c6",
+    measurementId: "G-GMXVLJNB8D"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  firebase.auth().signInAnonymously().catch(e => console.error('Auth error', e));
+
   const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
   const statusEl = document.getElementById('status');
   let modelsReady = false;
@@ -328,67 +411,99 @@
   let currentAttMode = 'student';
   let currentLogType = 'students';
   let currentRepType = 'students';
-  let currentRole = null; // 'admin' or 'college'
+  let currentLbType = 'students';
+  let currentRole = null;      // 'admin' | 'college' | 'teacher'
+  let currentTeacherId = null;
 
-  // ================= AUTH =================
-  function initAuth() {
-    if (!localStorage.getItem('fa_auth')) {
-      localStorage.setItem('fa_auth', JSON.stringify({
-        admin: { user: 'admin', pass: 'admin123' },
-        college: { user: 'college', pass: 'college123' }
-      }));
-    }
+  // live caches (kept in sync via Firebase listeners)
+  let studentsCache = [], teachersCache = [], deleteRequestsCache = [];
+  let logsCache = { students: [], teachers: [] };
+  let settingsCache = { classStartTime: '08:30', lateThresholdMin: 15, classEndTime: '14:15' };
+  let authCache = { admin: { user: 'admin', pass: 'admin123' }, college: { user: 'college', pass: 'college123' } };
+
+  function snapToArray(snap) {
+    const val = snap.val();
+    if (!val) return [];
+    return Object.keys(val).map(k => ({ id: k, ...val[k] }));
   }
-  initAuth();
-  function getAuth() { return JSON.parse(localStorage.getItem('fa_auth')); }
-  function saveAuth(a) { localStorage.setItem('fa_auth', JSON.stringify(a)); }
 
-  let loginRole = 'college';
-  document.getElementById('login-tab-college').addEventListener('click', () => {
-    loginRole = 'college';
-    document.getElementById('login-tab-college').classList.add('active');
-    document.getElementById('login-tab-admin').classList.remove('active');
+  // ================= REALTIME LISTENERS =================
+  db.ref('students').on('value', s => { studentsCache = snapToArray(s); refreshActiveTab(); });
+  db.ref('teachers').on('value', s => { teachersCache = snapToArray(s); refreshActiveTab(); });
+  db.ref('logs/students').on('value', s => { logsCache.students = snapToArray(s); refreshActiveTab(); });
+  db.ref('logs/teachers').on('value', s => { logsCache.teachers = snapToArray(s); refreshActiveTab(); });
+  db.ref('deleteRequests').on('value', s => { deleteRequestsCache = snapToArray(s).filter(r => r.status === 'pending'); refreshActiveTab(); });
+  db.ref('settings').on('value', s => { if (s.val()) settingsCache = s.val(); else db.ref('settings').set(settingsCache); });
+  db.ref('auth').on('value', s => { if (s.val()) authCache = s.val(); else db.ref('auth').set(authCache); });
+
+  function refreshActiveTab() {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (!activeTab) return;
+    const t = activeTab.dataset.tab;
+    if (t === 'students') renderStudentsList();
+    if (t === 'teachers') renderTeachersList();
+    if (t === 'log') renderLog();
+    if (t === 'reports') { populateReportPersons(); renderReport(); }
+    if (t === 'leaderboard') renderLeaderboard();
+    if (t === 'approvals') renderApprovals();
+    if (t === 'register') renderPendingFaces();
+  }
+
+  // ================= THEME =================
+  if (localStorage.getItem('fa_theme') === 'light') document.body.classList.add('light');
+  document.getElementById('theme-btn').addEventListener('click', () => {
+    document.body.classList.toggle('light');
+    localStorage.setItem('fa_theme', document.body.classList.contains('light') ? 'light' : 'dark');
   });
-  document.getElementById('login-tab-admin').addEventListener('click', () => {
-    loginRole = 'admin';
-    document.getElementById('login-tab-admin').classList.add('active');
-    document.getElementById('login-tab-college').classList.remove('active');
+
+  // ================= LOGIN =================
+  let loginRole = 'college';
+  document.querySelectorAll('.login-tabs .sub-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.login-tabs .sub-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loginRole = btn.dataset.lr;
+    });
   });
 
   document.getElementById('login-btn').addEventListener('click', () => {
     const u = document.getElementById('login-user').value.trim();
     const p = document.getElementById('login-pass').value;
-    const auth = getAuth()[loginRole];
-    if (u === auth.user && p === auth.pass) {
-      currentRole = loginRole;
-      sessionStorage.setItem('fa_role', currentRole);
-      enterApp();
+
+    if (loginRole === 'teacher') {
+      const t = teachersCache.find(x => x.username === u && x.password === p);
+      if (t) { currentRole = 'teacher'; currentTeacherId = t.id; sessionStorage.setItem('fa_role', 'teacher'); sessionStorage.setItem('fa_tid', t.id); enterApp(t.name); }
+      else document.getElementById('login-status').textContent = 'Galat teacher username ya password.';
+      return;
+    }
+    const auth = authCache[loginRole];
+    if (auth && u === auth.user && p === auth.pass) {
+      currentRole = loginRole; sessionStorage.setItem('fa_role', currentRole); enterApp();
     } else {
       document.getElementById('login-status').textContent = 'Galat username ya password.';
     }
   });
 
-  function enterApp() {
+  function enterApp(teacherName) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    document.getElementById('role-badge').textContent = currentRole === 'admin' ? '👑 Admin' : '🏫 College Staff';
+    const badgeText = currentRole === 'admin' ? '👑 Admin' : currentRole === 'teacher' ? `👨‍🏫 ${teacherName || 'Teacher'}` : '🏫 College Staff';
+    document.getElementById('role-badge').textContent = badgeText;
     if (currentRole !== 'admin') {
       document.getElementById('tabbtn-register').style.display = 'none';
       document.getElementById('tabbtn-settings').style.display = 'none';
+      document.getElementById('tabbtn-approvals').style.display = 'none';
     }
     loadModels();
-    renderPendingFaces();
   }
 
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    sessionStorage.removeItem('fa_role');
-    location.reload();
-  });
+  document.getElementById('logout-btn').addEventListener('click', () => { sessionStorage.clear(); location.reload(); });
 
-  // auto-login if session exists
   if (sessionStorage.getItem('fa_role')) {
     currentRole = sessionStorage.getItem('fa_role');
-    enterApp();
+    currentTeacherId = sessionStorage.getItem('fa_tid');
+    const tName = currentTeacherId ? (teachersCache.find(t => t.id === currentTeacherId) || {}).name : null;
+    setTimeout(() => enterApp(tName), 500); // slight delay so caches populate
   }
 
   // ================= TAB SWITCHING =================
@@ -398,11 +513,7 @@
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-      if (btn.dataset.tab === 'students') renderStudentsList();
-      if (btn.dataset.tab === 'teachers') renderTeachersList();
-      if (btn.dataset.tab === 'log') renderLog();
-      if (btn.dataset.tab === 'reports') { populateReportPersons(); renderReport(); }
-      if (btn.dataset.tab === 'settings') loadSettingsForm();
+      refreshActiveTab();
       if (btn.dataset.tab !== 'attendance') stopAttendanceLoop();
     });
   });
@@ -446,23 +557,17 @@
     populateReportPersons(); renderReport();
   }
 
-  // ================= DATA STORE =================
-  function getStudents() { return JSON.parse(localStorage.getItem('fa_students') || '[]'); }
-  function saveStudents(list) { localStorage.setItem('fa_students', JSON.stringify(list)); }
-  function getTeachers() { return JSON.parse(localStorage.getItem('fa_teachers') || '[]'); }
-  function saveTeachers(list) { localStorage.setItem('fa_teachers', JSON.stringify(list)); }
-  function getLog(type) { return JSON.parse(localStorage.getItem('fa_log_' + type) || '[]'); }
-  function saveLog(type, list) { localStorage.setItem('fa_log_' + type, JSON.stringify(list)); }
-  function getSettings() {
-    return JSON.parse(localStorage.getItem('fa_settings') || '{"classStartTime":"09:00","lateThresholdMin":15}');
+  document.getElementById('lb-type-students').addEventListener('click', () => { currentLbType = 'students'; toggleLbType(); });
+  document.getElementById('lb-type-teachers').addEventListener('click', () => { currentLbType = 'teachers'; toggleLbType(); });
+  function toggleLbType() {
+    document.getElementById('lb-type-students').classList.toggle('active', currentLbType === 'students');
+    document.getElementById('lb-type-teachers').classList.toggle('active', currentLbType === 'teachers');
+    renderLeaderboard();
   }
-  function saveSettings(s) { localStorage.setItem('fa_settings', JSON.stringify(s)); }
 
   function todayStr() { return new Date().toISOString().split('T')[0]; }
   document.getElementById('log-date').value = todayStr();
   document.getElementById('rep-month').value = todayStr().slice(0, 7);
-
-  function uid() { return 'id_' + Date.now() + '_' + Math.floor(Math.random() * 10000); }
 
   // ================= LOAD MODELS =================
   async function loadModels() {
@@ -475,6 +580,7 @@
       document.getElementById('capture-btn').disabled = false;
       document.getElementById('start-attend-btn').disabled = false;
       startCamera(document.getElementById('video-reg'));
+      startAutoAbsentChecker();
     } catch (e) {
       statusEl.textContent = 'Model load nahi ho paya — internet check karo.';
     }
@@ -491,16 +597,14 @@
     }
   }
 
-  // ================= MULTI-ANGLE CAPTURE FLOW =================
+  // ================= MULTI-ANGLE CAPTURE + DUPLICATE CHECK =================
   const captureSteps = ['Seedha camera me dekho 👀', 'Thoda LEFT ghumo ⬅️', 'Thoda RIGHT ghumo ➡️'];
   let captureStepIdx = 0;
   let capturedDescriptors = [];
-  let editingPendingId = null; // if capturing face for an existing pending profile
+  let editingPendingId = null;
 
   function resetCaptureFlow() {
-    captureStepIdx = 0;
-    capturedDescriptors = [];
-    editingPendingId = null;
+    captureStepIdx = 0; capturedDescriptors = []; editingPendingId = null;
     document.getElementById('capture-instruction').style.display = 'none';
     document.getElementById('capture-btn').textContent = '📸 Face Capture Shuru Karo';
   }
@@ -510,32 +614,24 @@
     const videoReg = document.getElementById('video-reg');
 
     if (captureStepIdx === 0 && capturedDescriptors.length === 0) {
-      // validate fields first (unless completing a pending face-only capture)
-      if (!editingPendingId) {
-        const valid = validateCurrentFields();
-        if (!valid) return;
-      }
+      if (!editingPendingId && !validateCurrentFields()) return;
       document.getElementById('capture-instruction').style.display = 'block';
     }
-
     document.getElementById('capture-instruction').textContent = captureSteps[captureStepIdx];
     statusEl.textContent = 'Face detect ho raha hai...';
 
     const detection = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks().withFaceDescriptor();
-    if (!detection) {
-      statusEl.textContent = 'Face detect nahi hua, seedhe camera ke saamne aao aur dobara try karo.';
-      return;
-    }
+    if (!detection) { statusEl.textContent = 'Face detect nahi hua, dobara try karo.'; return; }
     capturedDescriptors.push(Array.from(detection.descriptor));
     captureStepIdx++;
 
     if (captureStepIdx < captureSteps.length) {
       document.getElementById('capture-instruction').textContent = captureSteps[captureStepIdx];
       document.getElementById('capture-btn').textContent = `📸 Capture ${captureStepIdx + 1}/3`;
-      statusEl.textContent = `Step ${captureStepIdx}/3 done. Ab agla angle capture karo.`;
+      statusEl.textContent = `Step ${captureStepIdx}/3 done.`;
     } else {
-      finalizeRegistration();
+      checkDuplicateAndFinalize();
     }
   });
 
@@ -549,75 +645,84 @@
       const name = document.getElementById('t-name').value.trim();
       const dept = document.getElementById('t-dept').value.trim();
       const mobile = document.getElementById('t-mobile').value.trim();
-      if (!name || !dept || !mobile) { statusEl.textContent = 'Naam, Department aur Mobile Number zaroori hai.'; return false; }
+      const uname = document.getElementById('t-username').value.trim();
+      const upass = document.getElementById('t-password').value.trim();
+      if (!name || !dept || !mobile || !uname || !upass) { statusEl.textContent = 'Sabhi fields (username/password sahit) zaroori hai.'; return false; }
+      if (teachersCache.find(t => t.username === uname)) { statusEl.textContent = 'Ye username pehle se use ho raha hai.'; return false; }
     }
     return true;
   }
 
-  function finalizeRegistration() {
-    if (editingPendingId) {
-      const listKey = currentRegRole === 'student' ? getStudents : getTeachers;
-      const saveKey = currentRegRole === 'student' ? saveStudents : saveTeachers;
-      const list = listKey();
-      const p = list.find(x => x.id === editingPendingId);
-      p.descriptors = capturedDescriptors;
-      p.facePending = false;
-      saveKey(list);
-      statusEl.textContent = `${p.name} ki face register ho gayi!`;
-    } else {
-      let profile;
-      if (currentRegRole === 'student') {
-        profile = {
-          id: uid(),
-          name: document.getElementById('s-name').value.trim(),
-          branch: document.getElementById('s-branch').value,
-          father: document.getElementById('s-father').value.trim(),
-          mother: document.getElementById('s-mother').value.trim(),
-          dob: document.getElementById('s-dob').value,
-          mobile: document.getElementById('s-mobile').value.trim(),
-          descriptors: capturedDescriptors, facePending: false, addedAt: Date.now()
-        };
-        const list = getStudents(); list.push(profile); saveStudents(list);
-        ['s-name','s-branch','s-father','s-mother','s-dob','s-mobile'].forEach(id => document.getElementById(id).value = '');
-      } else {
-        profile = {
-          id: uid(),
-          name: document.getElementById('t-name').value.trim(),
-          dept: document.getElementById('t-dept').value.trim(),
-          mobile: document.getElementById('t-mobile').value.trim(),
-          descriptors: capturedDescriptors, facePending: false, addedAt: Date.now()
-        };
-        const list = getTeachers(); list.push(profile); saveTeachers(list);
-        ['t-name','t-dept','t-mobile'].forEach(id => document.getElementById(id).value = '');
+  function checkDuplicateAndFinalize() {
+    const allProfiles = [...studentsCache, ...teachersCache].filter(p => p.descriptors && p.descriptors.length && p.id !== editingPendingId);
+    if (allProfiles.length > 0) {
+      const labeled = allProfiles.map(p => new faceapi.LabeledFaceDescriptors(p.name + '||' + p.id, p.descriptors.map(d => new Float32Array(d))));
+      const matcher = new faceapi.FaceMatcher(labeled, 0.5);
+      const avgDesc = capturedDescriptors[0];
+      const match = matcher.findBestMatch(new Float32Array(avgDesc));
+      if (match.label !== 'unknown') {
+        const dupName = match.label.split('||')[0];
+        statusEl.textContent = `⚠️ Ye face pehle se "${dupName}" ke naam se register hai! Duplicate registration allow nahi hai.`;
+        resetCaptureFlow();
+        return;
       }
-      statusEl.textContent = `${profile.name} register ho gaya!`;
     }
-    resetCaptureFlow();
-    renderPendingFaces();
+    finalizeRegistration();
   }
 
-  // ================= PENDING FACES (from bulk import) =================
+  function finalizeRegistration() {
+    if (editingPendingId) {
+      const type = currentRegRole;
+      db.ref(`${type}s/${editingPendingId}`).update({ descriptors: capturedDescriptors, facePending: false })
+        .then(() => statusEl.textContent = 'Face register ho gayi!');
+    } else if (currentRegRole === 'student') {
+      const profile = {
+        name: document.getElementById('s-name').value.trim(),
+        branch: document.getElementById('s-branch').value,
+        father: document.getElementById('s-father').value.trim(),
+        mother: document.getElementById('s-mother').value.trim(),
+        dob: document.getElementById('s-dob').value,
+        mobile: document.getElementById('s-mobile').value.trim(),
+        descriptors: capturedDescriptors, facePending: false, addedAt: Date.now()
+      };
+      db.ref('students').push(profile);
+      ['s-name','s-branch','s-father','s-mother','s-dob','s-mobile'].forEach(id => document.getElementById(id).value = '');
+      statusEl.textContent = `${profile.name} register ho gaya!`;
+    } else {
+      const profile = {
+        name: document.getElementById('t-name').value.trim(),
+        dept: document.getElementById('t-dept').value.trim(),
+        mobile: document.getElementById('t-mobile').value.trim(),
+        username: document.getElementById('t-username').value.trim(),
+        password: document.getElementById('t-password').value.trim(),
+        descriptors: capturedDescriptors, facePending: false, addedAt: Date.now()
+      };
+      db.ref('teachers').push(profile);
+      ['t-name','t-dept','t-mobile','t-username','t-password'].forEach(id => document.getElementById(id).value = '');
+      statusEl.textContent = `${profile.name} (teacher) register ho gaya!`;
+    }
+    resetCaptureFlow();
+  }
+
+  // ================= PENDING FACES =================
   function renderPendingFaces() {
-    const list = currentRegRole === 'student' ? getStudents() : getTeachers();
+    const list = currentRegRole === 'student' ? studentsCache : teachersCache;
     const pending = list.filter(p => p.facePending);
     const card = document.getElementById('pending-faces-card');
     const el = document.getElementById('pending-faces-list');
     if (pending.length === 0) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     el.innerHTML = pending.map(p => `
-      <div class="list-item">
-        <span>${p.name}</span>
-        <button class="btn small" onclick="startPendingCapture('${p.id}')">Face Capture Karo</button>
-      </div>
+      <div class="list-item"><span>${p.name}</span>
+      <button class="btn small" onclick="startPendingCapture('${p.id}')">Face Capture Karo</button></div>
     `).join('');
   }
-
   function startPendingCapture(id) {
     resetCaptureFlow();
     editingPendingId = id;
-    statusEl.textContent = 'Ab is student/teacher ki face capture karo.';
     document.getElementById('capture-instruction').style.display = 'block';
     document.getElementById('capture-instruction').textContent = captureSteps[0];
+    statusEl.textContent = 'Ab is profile ki face capture karo.';
   }
 
   // ================= CSV BULK IMPORT =================
@@ -628,27 +733,19 @@
     reader.onload = (e) => {
       const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       let count = 0;
-      if (currentRegRole === 'student') {
-        const list = getStudents();
-        lines.forEach(line => {
-          const [name, branch, father, mother, dob, mobile] = line.split(',').map(x => (x || '').trim());
-          if (!name) return;
-          list.push({ id: uid(), name, branch: branch || '', father: father || '', mother: mother || '', dob: dob || '', mobile: mobile || '', descriptors: [], facePending: true, addedAt: Date.now() });
-          count++;
-        });
-        saveStudents(list);
-      } else {
-        const list = getTeachers();
-        lines.forEach(line => {
-          const [name, dept, mobile] = line.split(',').map(x => (x || '').trim());
-          if (!name) return;
-          list.push({ id: uid(), name, dept: dept || '', mobile: mobile || '', descriptors: [], facePending: true, addedAt: Date.now() });
-          count++;
-        });
-        saveTeachers(list);
-      }
+      lines.forEach(line => {
+        const parts = line.split(',').map(x => (x || '').trim());
+        if (!parts[0]) return;
+        if (currentRegRole === 'student') {
+          const [name, branch, father, mother, dob, mobile] = parts;
+          db.ref('students').push({ name, branch: branch||'', father: father||'', mother: mother||'', dob: dob||'', mobile: mobile||'', descriptors: [], facePending: true, addedAt: Date.now() });
+        } else {
+          const [name, dept, mobile, username, password] = parts;
+          db.ref('teachers').push({ name, dept: dept||'', mobile: mobile||'', username: username||'', password: password||'', descriptors: [], facePending: true, addedAt: Date.now() });
+        }
+        count++;
+      });
       statusEl.textContent = `${count} profiles import ho gaye. Ab unki face register karo.`;
-      renderPendingFaces();
     };
     reader.readAsText(file);
   });
@@ -656,28 +753,17 @@
   // ================= ATTENDANCE (FAST MULTI-FACE) =================
   const videoAtt = document.getElementById('video-att');
   const overlayAtt = document.getElementById('overlay-att');
-  let attendLoopId = null;
-  let attendCameraStarted = false;
-  let markedThisSession = new Set();
+  let attendLoopId = null, attendCameraStarted = false, markedThisSession = new Set();
 
   document.getElementById('start-attend-btn').addEventListener('click', async () => {
-    const list = currentAttMode === 'student' ? getStudents() : getTeachers();
-    const ready = list.filter(p => p.descriptors && p.descriptors.length > 0);
-    if (ready.length === 0) {
-      statusEl.textContent = `Pehle kam se kam ek ${currentAttMode === 'student' ? 'student' : 'teacher'} ki face register karo.`;
-      return;
-    }
-    if (!attendCameraStarted) {
-      const ok = await startCamera(videoAtt);
-      if (!ok) return;
-      attendCameraStarted = true;
-    }
+    const list = (currentAttMode === 'student' ? studentsCache : teachersCache).filter(p => p.descriptors && p.descriptors.length > 0);
+    if (list.length === 0) { statusEl.textContent = 'Pehle face register karo.'; return; }
+    if (!attendCameraStarted) { const ok = await startCamera(videoAtt); if (!ok) return; attendCameraStarted = true; }
     document.getElementById('start-attend-btn').style.display = 'none';
     document.getElementById('stop-attend-btn').style.display = 'block';
     markedThisSession = new Set();
     startAttendanceLoop();
   });
-
   document.getElementById('stop-attend-btn').addEventListener('click', () => {
     document.getElementById('start-attend-btn').style.display = 'block';
     document.getElementById('stop-attend-btn').style.display = 'none';
@@ -686,110 +772,109 @@
 
   function startAttendanceLoop() {
     const mode = currentAttMode;
-    const list = (mode === 'student' ? getStudents() : getTeachers()).filter(p => p.descriptors && p.descriptors.length > 0);
-    const labeledDescriptors = list.map(p =>
-      new faceapi.LabeledFaceDescriptors(p.id, p.descriptors.map(d => new Float32Array(d)))
-    );
-    const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55);
+    const list = (mode === 'student' ? studentsCache : teachersCache).filter(p => p.descriptors && p.descriptors.length > 0);
+    const labeled = list.map(p => new faceapi.LabeledFaceDescriptors(p.id, p.descriptors.map(d => new Float32Array(d))));
+    const matcher = new faceapi.FaceMatcher(labeled, 0.55);
     const idToName = {}; list.forEach(p => idToName[p.id] = p.name);
-
     const detectorOpts = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
 
     attendLoopId = setInterval(async () => {
       if (!modelsReady || videoAtt.readyState !== 4) return;
-      const dims = { width: videoAtt.videoWidth, height: videoAtt.videoHeight };
-      overlayAtt.width = dims.width; overlayAtt.height = dims.height;
-
-      const detections = await faceapi.detectAllFaces(videoAtt, detectorOpts)
-        .withFaceLandmarks().withFaceDescriptors();
-
+      overlayAtt.width = videoAtt.videoWidth; overlayAtt.height = videoAtt.videoHeight;
+      const detections = await faceapi.detectAllFaces(videoAtt, detectorOpts).withFaceLandmarks().withFaceDescriptors();
       const ctx = overlayAtt.getContext('2d');
       ctx.clearRect(0, 0, overlayAtt.width, overlayAtt.height);
-
       detections.forEach(det => {
         const match = matcher.findBestMatch(det.descriptor);
         const box = det.detection.box;
         const label = match.label === 'unknown' ? 'Unknown' : (idToName[match.label] || 'Unknown');
         ctx.strokeStyle = match.label === 'unknown' ? '#ff6b6b' : '#1db954';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(box.x, box.y, box.width, box.height);
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.font = '16px Arial';
-        ctx.fillText(label, box.x, box.y - 6);
-
-        if (match.label !== 'unknown') {
-          markAttendance(mode, match.label, label);
-        }
+        ctx.lineWidth = 2; ctx.strokeRect(box.x, box.y, box.width, box.height);
+        ctx.fillStyle = ctx.strokeStyle; ctx.font = '16px Arial'; ctx.fillText(label, box.x, box.y - 6);
+        if (match.label !== 'unknown') markAttendance(mode, match.label, label);
       });
     }, 350);
   }
+  function stopAttendanceLoop() { if (attendLoopId) { clearInterval(attendLoopId); attendLoopId = null; } }
 
-  function stopAttendanceLoop() {
-    if (attendLoopId) { clearInterval(attendLoopId); attendLoopId = null; }
-  }
-
-  function markAttendance(type, personId, name) {
+  function markAttendance(type, personId, name, statusOverride, manual) {
     const logType = type === 'student' ? 'students' : 'teachers';
     const today = todayStr();
     const sessionKey = logType + '_' + personId;
-    if (markedThisSession.has(sessionKey)) return;
+    if (!manual && markedThisSession.has(sessionKey)) return;
 
-    const log = getLog(logType);
-    const already = log.find(e => e.id === personId && e.date === today);
+    const already = logsCache[logType].find(e => e.personId === personId && e.date === today);
     if (already) { markedThisSession.add(sessionKey); return; }
 
-    const settings = getSettings();
-    const now = new Date();
-    const [ch, cm] = settings.classStartTime.split(':').map(Number);
-    const cutoff = new Date(now); cutoff.setHours(ch, cm + Number(settings.lateThresholdMin), 0, 0);
-    const status = now <= cutoff ? 'Present' : 'Late';
-
-    log.push({ id: personId, name, date: today, time: now.toLocaleTimeString(), status });
-    saveLog(logType, log);
+    let status = statusOverride;
+    if (!status) {
+      const now = new Date();
+      const [ch, cm] = settingsCache.classStartTime.split(':').map(Number);
+      const cutoff = new Date(now); cutoff.setHours(ch, cm + Number(settingsCache.lateThresholdMin), 0, 0);
+      status = now <= cutoff ? 'Present' : 'Late';
+    }
+    db.ref(`logs/${logType}`).push({ personId, name, date: today, time: manual ? 'Manual Entry' : new Date().toLocaleTimeString(), status });
     markedThisSession.add(sessionKey);
-    showToast(`✅ ${name} — ${status}`);
+    if (!manual) showToast(`✅ ${name} — ${status}`);
   }
 
   function showToast(msg) {
     const wrap = document.getElementById('toast-wrap');
-    const t = document.createElement('div');
-    t.className = 'toast';
-    t.textContent = msg;
-    wrap.appendChild(t);
-    setTimeout(() => t.remove(), 2500);
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+    wrap.appendChild(t); setTimeout(() => t.remove(), 2500);
+  }
+
+  // ================= AUTO-ABSENT =================
+  function startAutoAbsentChecker() {
+    setInterval(runAutoAbsentCheck, 60000);
+    runAutoAbsentCheck();
+  }
+  function runAutoAbsentCheck() {
+    const now = new Date();
+    const [eh, em] = (settingsCache.classEndTime || '14:15').split(':').map(Number);
+    const endTime = new Date(now); endTime.setHours(eh, em, 0, 0);
+    if (now < endTime) return;
+    const today = todayStr();
+    ['students', 'teachers'].forEach(type => {
+      const list = type === 'students' ? studentsCache : teachersCache;
+      list.forEach(p => {
+        if (new Date(p.addedAt) > now) return;
+        const hasLog = logsCache[type].find(e => e.personId === p.id && e.date === today);
+        if (!hasLog) {
+          db.ref(`logs/${type}`).push({ personId: p.id, name: p.name, date: today, time: 'Auto', status: 'Absent' });
+        }
+      });
+    });
   }
 
   // ================= ATTENDANCE % =================
   function calcAttendancePct(id, logType, addedAt) {
-    const log = getLog(logType).filter(e => e.id === id);
+    const log = logsCache[logType].filter(e => e.personId === id);
     const daysSinceAdded = Math.max(1, Math.ceil((Date.now() - addedAt) / (1000 * 60 * 60 * 24)));
-    const uniqueDates = new Set(log.map(e => e.date)).size;
-    const pct = Math.min(100, Math.round((uniqueDates / daysSinceAdded) * 100));
-    return { pct, presentDays: uniqueDates };
+    const presentDays = new Set(log.filter(e => e.status !== 'Absent').map(e => e.date)).size;
+    const pct = Math.min(100, Math.round((presentDays / daysSinceAdded) * 100));
+    return { pct, presentDays };
   }
 
   // ================= STUDENTS / TEACHERS LISTS =================
   function renderStudentsList() {
-    const students = getStudents();
     const today = todayStr();
-    const todayLog = getLog('students').filter(e => e.date === today);
-    document.getElementById('total-students-num').textContent = students.length;
+    const todayLog = logsCache.students.filter(e => e.date === today && e.status !== 'Absent');
+    document.getElementById('total-students-num').textContent = studentsCache.length;
     document.getElementById('present-today-students').textContent = todayLog.length;
-    document.getElementById('absent-today-students').textContent = Math.max(0, students.length - todayLog.length);
+    document.getElementById('absent-today-students').textContent = Math.max(0, studentsCache.length - todayLog.length);
 
-    const low = students.map(s => ({ ...s, ...calcAttendancePct(s.id, 'students', s.addedAt) })).filter(s => s.pct < 75);
-    const alertEl = document.getElementById('students-alert');
-    alertEl.innerHTML = low.length > 0
-      ? `<div class="alert-banner">⚠️ Low Attendance Alert (75% se kam):<br>${low.map(s => `${s.name} — ${s.pct}%`).join('<br>')}</div>`
-      : '';
+    const low = studentsCache.map(s => ({ ...s, ...calcAttendancePct(s.id, 'students', s.addedAt) })).filter(s => s.pct < 75);
+    document.getElementById('students-alert').innerHTML = low.length ? `<div class="alert-banner">⚠️ Low Attendance (75% se kam):<br>${low.map(s => `${s.name} — ${s.pct}%`).join('<br>')}</div>` : '';
 
+    const canManage = currentRole === 'admin';
+    const canRequest = currentRole === 'teacher' || currentRole === 'college';
     const list = document.getElementById('students-list');
-    const canEdit = currentRole === 'admin';
-    if (students.length === 0) { list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi student register nahi hai.</div>'; return; }
-    list.innerHTML = students.map(s => {
+    if (studentsCache.length === 0) { list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Koi student nahi hai.</div>'; return; }
+    list.innerHTML = studentsCache.map(s => {
       const { pct, presentDays } = calcAttendancePct(s.id, 'students', s.addedAt);
       return `
-      <div class="profile-card" data-id="${s.id}">
+      <div class="profile-card">
         <div class="profile-top" onclick="this.parentElement.classList.toggle('expanded')">
           <div><div class="profile-name">${s.name}${s.facePending ? '<span class="pending-tag">Face Pending</span>' : ''}</div>
           <div class="profile-meta">${s.branch || '-'}</div></div>
@@ -802,36 +887,36 @@
           DOB: <span>${s.dob || '-'}</span><br>
           Mobile: <span>${s.mobile || '-'}</span><br>
           Present Days: <span>${presentDays}</span>
-          ${canEdit ? `<div class="profile-actions">
-            <button class="btn small secondary" onclick="openEditModal('student','${s.id}')">Edit</button>
-            <button class="btn small danger" onclick="deleteProfile('student','${s.id}')">Delete</button>
-          </div>` : ''}
+          <div class="profile-actions">
+            ${canManage ? `<button class="btn small secondary" onclick="openEditModal('student','${s.id}')">Edit</button>
+              <button class="btn small" onclick="markAttendance('student','${s.id}','${s.name}','Present',true)">Mark Present</button>
+              <button class="btn small warn" onclick="markAttendance('student','${s.id}','${s.name}','Absent',true)">Mark Absent</button>
+              <button class="btn small danger" onclick="deleteProfile('student','${s.id}','${s.name}')">Delete</button>` : ''}
+            ${canRequest ? `<button class="btn small danger" onclick="deleteProfile('student','${s.id}','${s.name}')">Request Delete</button>` : ''}
+          </div>
         </div>
       </div>`;
     }).join('');
   }
 
   function renderTeachersList() {
-    const teachers = getTeachers();
     const today = todayStr();
-    const todayLog = getLog('teachers').filter(e => e.date === today);
-    document.getElementById('total-teachers-num').textContent = teachers.length;
+    const todayLog = logsCache.teachers.filter(e => e.date === today && e.status !== 'Absent');
+    document.getElementById('total-teachers-num').textContent = teachersCache.length;
     document.getElementById('present-today-teachers').textContent = todayLog.length;
-    document.getElementById('absent-today-teachers').textContent = Math.max(0, teachers.length - todayLog.length);
+    document.getElementById('absent-today-teachers').textContent = Math.max(0, teachersCache.length - todayLog.length);
 
-    const low = teachers.map(t => ({ ...t, ...calcAttendancePct(t.id, 'teachers', t.addedAt) })).filter(t => t.pct < 75);
-    const alertEl = document.getElementById('teachers-alert');
-    alertEl.innerHTML = low.length > 0
-      ? `<div class="alert-banner">⚠️ Low Attendance Alert (75% se kam):<br>${low.map(t => `${t.name} — ${t.pct}%`).join('<br>')}</div>`
-      : '';
+    const low = teachersCache.map(t => ({ ...t, ...calcAttendancePct(t.id, 'teachers', t.addedAt) })).filter(t => t.pct < 75);
+    document.getElementById('teachers-alert').innerHTML = low.length ? `<div class="alert-banner">⚠️ Low Attendance (75% se kam):<br>${low.map(t => `${t.name} — ${t.pct}%`).join('<br>')}</div>` : '';
 
+    const canManage = currentRole === 'admin';
+    const canRequest = currentRole === 'teacher' || currentRole === 'college';
     const list = document.getElementById('teachers-list');
-    const canEdit = currentRole === 'admin';
-    if (teachers.length === 0) { list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Abhi koi teacher register nahi hai.</div>'; return; }
-    list.innerHTML = teachers.map(t => {
+    if (teachersCache.length === 0) { list.innerHTML = '<div class="card" style="font-size:12px;color:#6b8c76;">Koi teacher nahi hai.</div>'; return; }
+    list.innerHTML = teachersCache.map(t => {
       const { pct, presentDays } = calcAttendancePct(t.id, 'teachers', t.addedAt);
       return `
-      <div class="profile-card" data-id="${t.id}">
+      <div class="profile-card">
         <div class="profile-top" onclick="this.parentElement.classList.toggle('expanded')">
           <div><div class="profile-name">${t.name}${t.facePending ? '<span class="pending-tag">Face Pending</span>' : ''}</div>
           <div class="profile-meta">${t.dept || '-'}</div></div>
@@ -840,63 +925,95 @@
         <div class="pct-bar"><div class="pct-fill ${pct < 75 ? 'low' : ''}" style="width:${pct}%;"></div></div>
         <div class="profile-detail-grid">
           Mobile: <span>${t.mobile || '-'}</span><br>
+          Username: <span>${t.username || '-'}</span><br>
           Present Days: <span>${presentDays}</span>
-          ${canEdit ? `<div class="profile-actions">
-            <button class="btn small secondary" onclick="openEditModal('teacher','${t.id}')">Edit</button>
-            <button class="btn small danger" onclick="deleteProfile('teacher','${t.id}')">Delete</button>
-          </div>` : ''}
+          <div class="profile-actions">
+            ${canManage ? `<button class="btn small secondary" onclick="openEditModal('teacher','${t.id}')">Edit</button>
+              <button class="btn small" onclick="markAttendance('teacher','${t.id}','${t.name}','Present',true)">Mark Present</button>
+              <button class="btn small warn" onclick="markAttendance('teacher','${t.id}','${t.name}','Absent',true)">Mark Absent</button>
+              <button class="btn small danger" onclick="deleteProfile('teacher','${t.id}','${t.name}')">Delete</button>` : ''}
+            ${canRequest ? `<button class="btn small danger" onclick="deleteProfile('teacher','${t.id}','${t.name}')">Request Delete</button>` : ''}
+          </div>
         </div>
       </div>`;
     }).join('');
   }
 
-  function deleteProfile(type, id) {
-    if (currentRole !== 'admin') return;
-    if (!confirm('Ye profile delete karni hai?')) return;
-    if (type === 'student') { saveStudents(getStudents().filter(s => s.id !== id)); renderStudentsList(); }
-    else { saveTeachers(getTeachers().filter(t => t.id !== id)); renderTeachersList(); }
+  function deleteProfile(type, id, name) {
+    if (currentRole === 'admin') {
+      if (!confirm(`${name} ki profile delete karni hai?`)) return;
+      db.ref(`${type}s/${id}`).remove();
+    } else {
+      if (!confirm(`${name} ke liye delete request bhejni hai? Admin approve karega.`)) return;
+      db.ref('deleteRequests').push({
+        type, targetId: id, name,
+        requestedBy: currentRole === 'teacher' ? currentTeacherId : 'college',
+        requestedByRole: currentRole, requestedAt: Date.now(), status: 'pending'
+      });
+      statusEl.textContent = 'Delete request bhej di gayi, admin approve karega.';
+    }
   }
+
+  // ================= APPROVALS =================
+  function renderApprovals() {
+    const el = document.getElementById('approvals-list');
+    if (deleteRequestsCache.length === 0) { el.innerHTML = '<div style="font-size:12px;color:#6b8c76;">Koi pending request nahi hai.</div>'; return; }
+    el.innerHTML = deleteRequestsCache.map(r => `
+      <div class="list-item">
+        <span>${r.name} <span class="meta">(${r.type}, by ${r.requestedByRole})</span></span>
+        <span style="display:flex;gap:6px;">
+          <button class="btn small" onclick="approveRequest('${r.id}','${r.type}','${r.targetId}')">✅ Approve</button>
+          <button class="btn small danger" onclick="rejectRequest('${r.id}')">✕ Reject</button>
+        </span>
+      </div>`).join('');
+  }
+  function approveRequest(reqId, type, targetId) {
+    db.ref(`${type}s/${targetId}`).remove();
+    db.ref(`deleteRequests/${reqId}`).remove();
+  }
+  function rejectRequest(reqId) { db.ref(`deleteRequests/${reqId}`).remove(); }
 
   // ================= EDIT MODAL =================
   let editingType = null, editingId = null;
   function openEditModal(type, id) {
     editingType = type; editingId = id;
-    const list = type === 'student' ? getStudents() : getTeachers();
-    const p = list.find(x => x.id === id);
+    const p = (type === 'student' ? studentsCache : teachersCache).find(x => x.id === id);
     document.getElementById('modal-title').textContent = 'Edit ' + (type === 'student' ? 'Student' : 'Teacher');
     let html = `<label class="field-label">Naam</label><input type="text" id="m-name" value="${p.name || ''}">`;
     if (type === 'student') {
-      html += `
-        <label class="field-label">Branch</label>
-        <select id="m-branch">${['','CSE','ECE','ME','CE','EE','IT','CSE-AI/ML','Other'].map(b => `<option ${p.branch===b?'selected':''}>${b}</option>`).join('')}</select>
+      html += `<label class="field-label">Branch</label><select id="m-branch">${['','CSE','ECE','ME','CE','EE','IT','CSE-AI/ML','Other'].map(b => `<option ${p.branch===b?'selected':''}>${b}</option>`).join('')}</select>
         <label class="field-label">Pita ka naam</label><input type="text" id="m-father" value="${p.father || ''}">
         <label class="field-label">Mata ka naam</label><input type="text" id="m-mother" value="${p.mother || ''}">
         <label class="field-label">DOB</label><input type="date" id="m-dob" value="${p.dob || ''}">
         <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">`;
     } else {
-      html += `
-        <label class="field-label">Department</label><input type="text" id="m-dept" value="${p.dept || ''}">
-        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">`;
+      html += `<label class="field-label">Department</label><input type="text" id="m-dept" value="${p.dept || ''}">
+        <label class="field-label">Mobile</label><input type="tel" id="m-mobile" value="${p.mobile || ''}">
+        <label class="field-label">Username</label><input type="text" id="m-username" value="${p.username || ''}">
+        <label class="field-label">Password</label><input type="text" id="m-password" value="${p.password || ''}">`;
     }
     document.getElementById('modal-body').innerHTML = html;
     document.getElementById('modal-overlay').style.display = 'flex';
   }
   document.getElementById('modal-cancel-btn').addEventListener('click', () => { document.getElementById('modal-overlay').style.display = 'none'; });
   document.getElementById('modal-save-btn').addEventListener('click', () => {
-    const list = editingType === 'student' ? getStudents() : getTeachers();
-    const p = list.find(x => x.id === editingId);
-    p.name = document.getElementById('m-name').value.trim();
     if (editingType === 'student') {
-      p.branch = document.getElementById('m-branch').value;
-      p.father = document.getElementById('m-father').value.trim();
-      p.mother = document.getElementById('m-mother').value.trim();
-      p.dob = document.getElementById('m-dob').value;
-      p.mobile = document.getElementById('m-mobile').value.trim();
-      saveStudents(list); renderStudentsList();
+      db.ref(`students/${editingId}`).update({
+        name: document.getElementById('m-name').value.trim(),
+        branch: document.getElementById('m-branch').value,
+        father: document.getElementById('m-father').value.trim(),
+        mother: document.getElementById('m-mother').value.trim(),
+        dob: document.getElementById('m-dob').value,
+        mobile: document.getElementById('m-mobile').value.trim()
+      });
     } else {
-      p.dept = document.getElementById('m-dept').value.trim();
-      p.mobile = document.getElementById('m-mobile').value.trim();
-      saveTeachers(list); renderTeachersList();
+      db.ref(`teachers/${editingId}`).update({
+        name: document.getElementById('m-name').value.trim(),
+        dept: document.getElementById('m-dept').value.trim(),
+        mobile: document.getElementById('m-mobile').value.trim(),
+        username: document.getElementById('m-username').value.trim(),
+        password: document.getElementById('m-password').value.trim()
+      });
     }
     document.getElementById('modal-overlay').style.display = 'none';
   });
@@ -905,41 +1022,80 @@
   document.getElementById('log-date').addEventListener('change', renderLog);
   function renderLog() {
     const date = document.getElementById('log-date').value || todayStr();
-    const log = getLog(currentLogType).filter(e => e.date === date);
+    const log = logsCache[currentLogType].filter(e => e.date === date);
     const el = document.getElementById('log-list');
-    if (log.length === 0) { el.innerHTML = '<div style="font-size:12px;color:#6b8c76;margin-bottom:10px;">Is din ka koi attendance record nahi hai.</div>'; return; }
+    if (log.length === 0) { el.innerHTML = '<div style="font-size:12px;color:#6b8c76;margin-bottom:10px;">Is din ka koi record nahi hai.</div>'; return; }
     el.innerHTML = log.map(e => `
-      <div class="list-item">
-        <span>${e.name}</span>
-        <span style="display:flex;align-items:center;gap:6px;">
-          <span class="status-tag ${e.status === 'Late' ? 'status-late' : 'status-present'}">${e.status || 'Present'}</span>
-          <span class="meta">${e.time}</span>
-        </span>
-      </div>`).join('');
+      <div class="list-item"><span>${e.name}</span>
+      <span style="display:flex;align-items:center;gap:6px;">
+        <span class="status-tag ${e.status === 'Late' ? 'status-late' : e.status === 'Absent' ? 'status-absent' : 'status-present'}">${e.status || 'Present'}</span>
+        <span class="meta">${e.time}</span></span></div>`).join('');
   }
   document.getElementById('export-btn').addEventListener('click', () => {
     const date = document.getElementById('log-date').value || todayStr();
-    const log = getLog(currentLogType).filter(e => e.date === date);
-    if (log.length === 0) { statusEl.textContent = 'Is din ka log khali hai.'; return; }
+    const log = logsCache[currentLogType].filter(e => e.date === date);
+    if (log.length === 0) { statusEl.textContent = 'Log khali hai.'; return; }
     let csv = 'Name,Date,Time,Status\n';
     log.forEach(e => { csv += `${e.name},${e.date},${e.time},${e.status || 'Present'}\n`; });
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `attendance-${currentLogType}-${date}.csv`; a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(csv, `attendance-${currentLogType}-${date}.csv`, 'text/csv');
   });
   document.getElementById('clear-log-btn').addEventListener('click', () => {
     const date = document.getElementById('log-date').value || todayStr();
-    if (!confirm(`${date} ka pura log clear karna hai?`)) return;
-    saveLog(currentLogType, getLog(currentLogType).filter(e => e.date !== date));
-    renderLog();
+    if (!confirm(`${date} ka log clear karna hai?`)) return;
+    const log = logsCache[currentLogType].filter(e => e.date === date);
+    log.forEach(e => db.ref(`logs/${currentLogType}/${e.id}`).remove());
+  });
+
+  function downloadBlob(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ================= FULL DAILY REPORT PDF =================
+  document.getElementById('print-daily-btn').addEventListener('click', () => {
+    const date = document.getElementById('log-date').value || todayStr();
+    const type = currentLogType;
+    const list = type === 'students' ? studentsCache : teachersCache;
+    const log = logsCache[type].filter(e => e.date === date);
+    const logMap = {}; log.forEach(e => logMap[e.personId] = e);
+
+    let rows = list.map(p => {
+      const e = logMap[p.id];
+      const status = e ? e.status : 'Absent';
+      const extra = type === 'students'
+        ? `Branch: ${p.branch||'-'} | Father: ${p.father||'-'} | Mother: ${p.mother||'-'} | DOB: ${p.dob||'-'} | Mobile: ${p.mobile||'-'}`
+        : `Dept: ${p.dept||'-'} | Mobile: ${p.mobile||'-'}`;
+      return `<div class="print-row"><b>${p.name}</b> — ${status} ${e ? '('+e.time+')' : ''}<br><small>${extra}</small></div>`;
+    }).join('');
+
+    document.getElementById('print-report').innerHTML = `
+      <h2 style="text-align:center;">Daily Attendance Report — ${date}</h2>
+      <p style="text-align:center;">${type === 'students' ? 'Students' : 'Teachers'} — Total: ${list.length}</p>
+      <hr>${rows}`;
+    window.print();
+  });
+
+  // ================= FULL ROSTER PDF =================
+  document.getElementById('print-roster-students-btn').addEventListener('click', () => {
+    let rows = studentsCache.map(s => `<div class="print-row"><b>${s.name}</b><br>
+      Branch: ${s.branch||'-'} | Father: ${s.father||'-'} | Mother: ${s.mother||'-'}<br>
+      DOB: ${s.dob||'-'} | Mobile: ${s.mobile||'-'}</div>`).join('');
+    document.getElementById('print-report').innerHTML = `<h2 style="text-align:center;">All Students Registration Data</h2><hr>${rows}`;
+    window.print();
+  });
+  document.getElementById('print-roster-teachers-btn').addEventListener('click', () => {
+    let rows = teachersCache.map(t => `<div class="print-row"><b>${t.name}</b><br>
+      Dept: ${t.dept||'-'} | Mobile: ${t.mobile||'-'} | Username: ${t.username||'-'}</div>`).join('');
+    document.getElementById('print-report').innerHTML = `<h2 style="text-align:center;">All Teachers Registration Data</h2><hr>${rows}`;
+    window.print();
   });
 
   // ================= REPORTS (Monthly Calendar) =================
   function populateReportPersons() {
-    const list = currentRepType === 'students' ? getStudents() : getTeachers();
-    const sel = document.getElementById('rep-person');
-    sel.innerHTML = list.map(p => `<option value="${p.id}">${p.name}</option>`).join('') || '<option value="">Koi profile nahi</option>';
+    const list = currentRepType === 'students' ? studentsCache : teachersCache;
+    document.getElementById('rep-person').innerHTML = list.map(p => `<option value="${p.id}">${p.name}</option>`).join('') || '<option value="">Koi profile nahi</option>';
   }
   document.getElementById('rep-person').addEventListener('change', renderReport);
   document.getElementById('rep-month').addEventListener('change', renderReport);
@@ -948,64 +1104,92 @@
     const personId = document.getElementById('rep-person').value;
     const month = document.getElementById('rep-month').value;
     const calEl = document.getElementById('rep-cal');
-    const headerEl = document.getElementById('report-header');
-    const summaryEl = document.getElementById('report-summary');
-    if (!personId || !month) { calEl.innerHTML = ''; headerEl.textContent = ''; summaryEl.textContent = ''; return; }
-
-    const list = currentRepType === 'students' ? getStudents() : getTeachers();
+    if (!personId || !month) { calEl.innerHTML = ''; document.getElementById('report-header').textContent=''; document.getElementById('report-summary').textContent=''; return; }
+    const list = currentRepType === 'students' ? studentsCache : teachersCache;
     const person = list.find(p => p.id === personId);
-    const log = getLog(currentRepType).filter(e => e.id === personId);
+    const log = logsCache[currentRepType].filter(e => e.personId === personId);
     const [year, mon] = month.split('-').map(Number);
     const daysInMonth = new Date(year, mon, 0).getDate();
     const today = new Date();
+    document.getElementById('report-header').textContent = `${person ? person.name : ''} — ${month}`;
 
-    headerEl.textContent = `${person ? person.name : ''} — ${month}`;
-
-    let presentCount = 0, lateCount = 0, absentCount = 0;
-    let html = '';
+    let present = 0, late = 0, absent = 0, html = '';
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(mon).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const entry = log.find(e => e.date === dateStr);
       const cellDate = new Date(year, mon - 1, d);
-      let cls = '', label = d;
-      if (cellDate > today) { cls = ''; }
-      else if (entry && entry.status === 'Late') { cls = 'late'; lateCount++; }
-      else if (entry) { cls = 'present'; presentCount++; }
-      else { cls = 'absent'; absentCount++; }
-      html += `<div class="cal-cell ${cls}">${label}</div>`;
+      let cls = '';
+      if (cellDate > today) cls = '';
+      else if (entry && entry.status === 'Late') { cls = 'late'; late++; }
+      else if (entry && entry.status !== 'Absent') { cls = 'present'; present++; }
+      else if (cellDate <= today) { cls = 'absent'; absent++; }
+      html += `<div class="cal-cell ${cls}">${d}</div>`;
     }
     calEl.innerHTML = html;
-    const totalMarked = presentCount + lateCount + absentCount;
-    const pct = totalMarked > 0 ? Math.round(((presentCount + lateCount) / totalMarked) * 100) : 0;
-    summaryEl.innerHTML = `Present: ${presentCount} &nbsp; Late: ${lateCount} &nbsp; Absent: ${absentCount} &nbsp;| Monthly %: <b>${pct}%</b>`;
+    const total = present + late + absent;
+    const pct = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
+    document.getElementById('report-summary').innerHTML = `Present: ${present} &nbsp; Late: ${late} &nbsp; Absent: ${absent} &nbsp;| Monthly %: <b>${pct}%</b>`;
   }
+  document.getElementById('print-btn').addEventListener('click', () => {
+    document.getElementById('print-report').innerHTML = document.getElementById('report-header').outerHTML + document.getElementById('rep-cal').outerHTML + document.getElementById('report-summary').outerHTML;
+    window.print();
+  });
 
-  document.getElementById('print-btn').addEventListener('click', () => window.print());
+  // ================= LEADERBOARD =================
+  function renderLeaderboard() {
+    const list = currentLbType === 'students' ? studentsCache : teachersCache;
+    const ranked = list.map(p => ({ ...p, ...calcAttendancePct(p.id, currentLbType, p.addedAt) })).sort((a, b) => b.pct - a.pct).slice(0, 5);
+    const medals = ['🥇','🥈','🥉','🏅','🏅'];
+    document.getElementById('leaderboard-list').innerHTML = ranked.length ? ranked.map((p, i) => `
+      <div class="list-item"><span><span class="medal">${medals[i]}</span>${p.name}</span><span class="meta">${p.pct}%</span></div>
+    `).join('') : '<div style="font-size:12px;color:#6b8c76;">Data nahi hai.</div>';
+  }
 
   // ================= SETTINGS =================
+  document.getElementById('tabbtn-settings').addEventListener('click', loadSettingsForm);
   function loadSettingsForm() {
-    const s = getSettings();
-    document.getElementById('set-class-time').value = s.classStartTime;
-    document.getElementById('set-late-threshold').value = s.lateThresholdMin;
-    const auth = getAuth();
-    document.getElementById('set-college-user').value = auth.college.user;
-    document.getElementById('set-college-pass').value = auth.college.pass;
-    document.getElementById('set-admin-user').value = auth.admin.user;
-    document.getElementById('set-admin-pass').value = auth.admin.pass;
+    document.getElementById('set-class-time').value = settingsCache.classStartTime;
+    document.getElementById('set-late-threshold').value = settingsCache.lateThresholdMin;
+    document.getElementById('set-class-end').value = settingsCache.classEndTime;
+    document.getElementById('set-college-user').value = authCache.college.user;
+    document.getElementById('set-college-pass').value = authCache.college.pass;
+    document.getElementById('set-admin-user').value = authCache.admin.user;
+    document.getElementById('set-admin-pass').value = authCache.admin.pass;
   }
   document.getElementById('save-settings-btn').addEventListener('click', () => {
-    saveSettings({
-      classStartTime: document.getElementById('set-class-time').value || '09:00',
-      lateThresholdMin: Number(document.getElementById('set-late-threshold').value) || 0
+    db.ref('settings').set({
+      classStartTime: document.getElementById('set-class-time').value || '08:30',
+      lateThresholdMin: Number(document.getElementById('set-late-threshold').value) || 0,
+      classEndTime: document.getElementById('set-class-end').value || '14:15'
     });
     statusEl.textContent = 'Settings save ho gayi.';
   });
   document.getElementById('save-auth-btn').addEventListener('click', () => {
-    saveAuth({
+    db.ref('auth').set({
       college: { user: document.getElementById('set-college-user').value.trim(), pass: document.getElementById('set-college-pass').value },
       admin: { user: document.getElementById('set-admin-user').value.trim(), pass: document.getElementById('set-admin-pass').value }
     });
     statusEl.textContent = 'Login credentials update ho gaye.';
+  });
+
+  // ================= BACKUP & RESTORE =================
+  document.getElementById('backup-btn').addEventListener('click', () => {
+    db.ref('/').once('value').then(snap => {
+      downloadBlob(JSON.stringify(snap.val(), null, 2), `attendance-backup-${todayStr()}.json`, 'application/json');
+    });
+  });
+  document.getElementById('restore-btn').addEventListener('click', () => {
+    const file = document.getElementById('restore-file').files[0];
+    if (!file) { statusEl.textContent = 'Pehle backup file select karo.'; return; }
+    if (!confirm('Ye poora current data overwrite kar dega. Continue?')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        db.ref('/').set(data).then(() => statusEl.textContent = 'Restore ho gaya!');
+      } catch (err) { statusEl.textContent = 'Invalid backup file.'; }
+    };
+    reader.readAsText(file);
   });
 </script>
 </body>
