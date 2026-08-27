@@ -602,11 +602,21 @@
   let captureStepIdx = 0;
   let capturedDescriptors = [];
   let editingPendingId = null;
+  let editingPendingType = null;
 
   function resetCaptureFlow() {
-    captureStepIdx = 0; capturedDescriptors = []; editingPendingId = null;
+    captureStepIdx = 0; capturedDescriptors = []; editingPendingId = null; editingPendingType = null;
     document.getElementById('capture-instruction').style.display = 'none';
     document.getElementById('capture-btn').textContent = '📸 Face Capture Shuru Karo';
+  }
+
+  function findDuplicateFace(descArr) {
+    const allProfiles = [...studentsCache, ...teachersCache].filter(p => p.descriptors && p.descriptors.length && p.id !== editingPendingId);
+    if (allProfiles.length === 0) return null;
+    const labeled = allProfiles.map(p => new faceapi.LabeledFaceDescriptors(p.name + '||' + p.id, p.descriptors.map(d => new Float32Array(d))));
+    const matcher = new faceapi.FaceMatcher(labeled, 0.5);
+    const match = matcher.findBestMatch(new Float32Array(descArr));
+    return match.label !== 'unknown' ? match.label.split('||')[0] : null;
   }
 
   document.getElementById('capture-btn').addEventListener('click', async () => {
@@ -620,18 +630,37 @@
     document.getElementById('capture-instruction').textContent = captureSteps[captureStepIdx];
     statusEl.textContent = 'Face detect ho raha hai...';
 
-    const detection = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks().withFaceDescriptor();
-    if (!detection) { statusEl.textContent = 'Face detect nahi hua, dobara try karo.'; return; }
-    capturedDescriptors.push(Array.from(detection.descriptor));
+    let detection;
+    try {
+      detection = await faceapi.detectSingleFace(videoReg, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks().withFaceDescriptor();
+    } catch (err) {
+      statusEl.textContent = 'Camera/detection me error aaya, dobara try karo.';
+      return;
+    }
+    if (!detection) { statusEl.textContent = 'Face detect nahi hua, seedhe camera ke saamne aao aur dobara try karo.'; return; }
+
+    const descArr = Array.from(detection.descriptor);
+
+    // duplicate check happens right after the FIRST angle — instant warning, no wasted steps
+    if (captureStepIdx === 0) {
+      const dupName = findDuplicateFace(descArr);
+      if (dupName) {
+        statusEl.textContent = `⚠️ Ye face pehle se "${dupName}" ke naam se register hai! Registration cancel kar diya gaya.`;
+        resetCaptureFlow();
+        return;
+      }
+    }
+
+    capturedDescriptors.push(descArr);
     captureStepIdx++;
 
     if (captureStepIdx < captureSteps.length) {
       document.getElementById('capture-instruction').textContent = captureSteps[captureStepIdx];
       document.getElementById('capture-btn').textContent = `📸 Capture ${captureStepIdx + 1}/3`;
-      statusEl.textContent = `Step ${captureStepIdx}/3 done.`;
+      statusEl.textContent = `Step ${captureStepIdx}/3 done. Ab agla angle capture karo.`;
     } else {
-      checkDuplicateAndFinalize();
+      finalizeRegistration();
     }
   });
 
@@ -653,28 +682,13 @@
     return true;
   }
 
-  function checkDuplicateAndFinalize() {
-    const allProfiles = [...studentsCache, ...teachersCache].filter(p => p.descriptors && p.descriptors.length && p.id !== editingPendingId);
-    if (allProfiles.length > 0) {
-      const labeled = allProfiles.map(p => new faceapi.LabeledFaceDescriptors(p.name + '||' + p.id, p.descriptors.map(d => new Float32Array(d))));
-      const matcher = new faceapi.FaceMatcher(labeled, 0.5);
-      const avgDesc = capturedDescriptors[0];
-      const match = matcher.findBestMatch(new Float32Array(avgDesc));
-      if (match.label !== 'unknown') {
-        const dupName = match.label.split('||')[0];
-        statusEl.textContent = `⚠️ Ye face pehle se "${dupName}" ke naam se register hai! Duplicate registration allow nahi hai.`;
-        resetCaptureFlow();
-        return;
-      }
-    }
-    finalizeRegistration();
-  }
-
   function finalizeRegistration() {
     if (editingPendingId) {
-      const type = currentRegRole;
+      const type = editingPendingType || currentRegRole;
       db.ref(`${type}s/${editingPendingId}`).update({ descriptors: capturedDescriptors, facePending: false })
-        .then(() => statusEl.textContent = 'Face register ho gayi!');
+        .then(() => { statusEl.textContent = 'Face register ho gayi!'; resetCaptureFlow(); })
+        .catch(err => { statusEl.textContent = 'Error: face save nahi hui — ' + err.message; });
+      return;
     } else if (currentRegRole === 'student') {
       const profile = {
         name: document.getElementById('s-name').value.trim(),
@@ -707,6 +721,7 @@
   // ================= PENDING FACES =================
   function renderPendingFaces() {
     const list = currentRegRole === 'student' ? studentsCache : teachersCache;
+    const pendingType = currentRegRole; // 'student' or 'teacher'
     const pending = list.filter(p => p.facePending);
     const card = document.getElementById('pending-faces-card');
     const el = document.getElementById('pending-faces-list');
@@ -714,15 +729,17 @@
     card.style.display = 'block';
     el.innerHTML = pending.map(p => `
       <div class="list-item"><span>${p.name}</span>
-      <button class="btn small" onclick="startPendingCapture('${p.id}')">Face Capture Karo</button></div>
+      <button class="btn small" onclick="startPendingCapture('${p.id}','${pendingType}')">Face Capture Karo</button></div>
     `).join('');
   }
-  function startPendingCapture(id) {
+  function startPendingCapture(id, type) {
     resetCaptureFlow();
     editingPendingId = id;
+    editingPendingType = type;
     document.getElementById('capture-instruction').style.display = 'block';
     document.getElementById('capture-instruction').textContent = captureSteps[0];
-    statusEl.textContent = 'Ab is profile ki face capture karo.';
+    document.getElementById('capture-btn').textContent = '📸 Face Capture Shuru Karo';
+    statusEl.textContent = 'Ab is profile ki face capture karo — camera ke saamne aao.';
   }
 
   // ================= CSV BULK IMPORT =================
@@ -793,18 +810,25 @@
         ctx.fillStyle = ctx.strokeStyle; ctx.font = '16px Arial'; ctx.fillText(label, box.x, box.y - 6);
         if (match.label !== 'unknown') markAttendance(mode, match.label, label);
       });
-    }, 350);
+    }, 250);
   }
   function stopAttendanceLoop() { if (attendLoopId) { clearInterval(attendLoopId); attendLoopId = null; } }
+
+  function playBeep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880; gain.gain.value = 0.15;
+      osc.start(); osc.stop(ctx.currentTime + 0.12);
+    } catch (e) {}
+  }
 
   function markAttendance(type, personId, name, statusOverride, manual) {
     const logType = type === 'student' ? 'students' : 'teachers';
     const today = todayStr();
     const sessionKey = logType + '_' + personId;
     if (!manual && markedThisSession.has(sessionKey)) return;
-
-    const already = logsCache[logType].find(e => e.personId === personId && e.date === today);
-    if (already) { markedThisSession.add(sessionKey); return; }
 
     let status = statusOverride;
     if (!status) {
@@ -813,9 +837,28 @@
       const cutoff = new Date(now); cutoff.setHours(ch, cm + Number(settingsCache.lateThresholdMin), 0, 0);
       status = now <= cutoff ? 'Present' : 'Late';
     }
-    db.ref(`logs/${logType}`).push({ personId, name, date: today, time: manual ? 'Manual Entry' : new Date().toLocaleTimeString(), status });
+    const timeStr = manual ? 'Manual Entry' : new Date().toLocaleTimeString();
+
+    const existing = logsCache[logType].find(e => e.personId === personId && e.date === today);
+
+    if (existing) {
+      // an auto-marked "Absent" entry gets overwritten the moment the real face/manual mark comes in
+      if (existing.status === 'Absent' && existing.time === 'Auto') {
+        db.ref(`logs/${logType}/${existing.id}`).update({ time: timeStr, status })
+          .catch(err => console.error('attendance update failed', err));
+        markedThisSession.add(sessionKey);
+        if (!manual) { showToast(`✅ ${name} — ${status}`); playBeep(); }
+        return;
+      }
+      // already has a real entry today — don't duplicate
+      markedThisSession.add(sessionKey);
+      return;
+    }
+
+    db.ref(`logs/${logType}`).push({ personId, name, date: today, time: timeStr, status })
+      .catch(err => console.error('attendance push failed', err));
     markedThisSession.add(sessionKey);
-    if (!manual) showToast(`✅ ${name} — ${status}`);
+    if (!manual) { showToast(`✅ ${name} — ${status}`); playBeep(); }
   }
 
   function showToast(msg) {
@@ -1193,4 +1236,4 @@
   });
 </script>
 </body>
- </html>
+</html>
